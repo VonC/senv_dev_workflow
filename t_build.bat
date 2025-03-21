@@ -24,7 +24,8 @@
 for %%i in ("%~dp0") do SET "t_build_dir=%%~fi"
 set "t_build_dir=%t_build_dir:~0,-1%"
 
-call <NUL "%t_build_dir%\..\senv.bat"
+call "%t_build_dir%\tools\init.bat"
+call <NUL "%PRJ_DIR%\senv.bat"
 set "QUIET_PRJ=true"
 
 call %*
@@ -96,11 +97,12 @@ if defined PRJ_REL_TITLE (
 %_stack_call% "%t_build_dir%\update-version.bat" %build_params-uv%
 if errorlevel 1 (
   call:build_unset
-  call "%~dp0batcolors\echos.bat" :fatal "update-version FAILED, code '%ERRORLEVEL%'" 3
+  call "%~dp0\tools\batcolors\echos.bat" :fatal "update-version FAILED, code '%ERRORLEVEL%'" 3
   goto:eof
 )
 set "QUIET_PRJ=true"
-%_stack_call% <NUL "%t_build_dir%\..\senv.bat"
+%_stack_call% "%t_build_dir%\tools\init.bat"
+%_stack_call% <NUL "%PRJ_DIR%\..\senv.bat"
 set "QUIET_PRJ="
 
 goto:eof
@@ -110,16 +112,16 @@ goto:eof
 ::##################################################
 :post-processing
 if "%~1"=="0" (
-  %_ok% "project '%project_dir_name%' build successful"
+  %_ok% "project '%PRJ_DIR_NAME%' build successful"
 ) else (
-  %_error% "project '%project_dir_name%' build FAILED for version '%project_version%'"
+  %_error% "project '%PRJ_DIR_NAME%' build FAILED for version '%project_version%'"
   call:has_a_release_just_been_made
   if defined a_release_has_just_been_made (
     set "a_release_has_just_been_made="
     call:reset_pre_release
   )
   call:build_unset
-  call "%~dp0batcolors\echos.bat" :fatal "project '%project_dir_name%' build FAILED, code '%ERRORLEVEL%'" 3
+  call "%~dp0batcolors\echos.bat" :fatal "project '%PRJ_DIR_NAME%' build FAILED, code '%ERRORLEVEL%'" 3
 )
 goto:eof
 
@@ -129,7 +131,7 @@ goto:eof
 :has_a_release_just_been_made
 set "a_release_has_just_been_made="
 
-for /f "delims=" %%i in ('git -C "%project_dir%" tag --points-at HEAD') do (
+for /f "delims=" %%i in ('git -C "%PRJ_DIR%" tag --points-at HEAD') do (
     if "%%i"=="v%project_version%" (
         set "a_release_has_just_been_made=true"
         %_info% "[%~nx0] A release has just been made"
@@ -145,11 +147,11 @@ goto:eof
 ::##################################################
 :reset_pre_release
 %_task% "[%~nx0] Must reset pre-release state (build failed): git reset, git tag -d 'v%project_version%'"
-git -C "%project_dir%" reset @~1
-if errorlevel 1 ( %_fatal% "[%~nx0] Unable to reset hard to previous commit of '%project_dir%'" 311 )
+git -C "%PRJ_DIR%" reset @~1
+if errorlevel 1 ( %_fatal% "[%~nx0] Unable to reset hard to previous commit of '%PRJ_DIR%'" 311 )
 %_ok% "[%~nx0] Git repository reset to previous commit"
-git -C "%project_dir%" tag -d "v%project_version%"
-if errorlevel 1 ( %_fatal% "[%~nx0] Unable to delete git tag 'v%project_version%' of '%project_dir%'" 312 )
+git -C "%PRJ_DIR%" tag -d "v%project_version%"
+if errorlevel 1 ( %_fatal% "[%~nx0] Unable to delete git tag 'v%project_version%' of '%PRJ_DIR%'" 312 )
 %_ok% "[%~nx0] Git tag 'v%project_version%' deleted"
 goto:eof
 
@@ -176,5 +178,5 @@ set "QUIET_PRJ="
 goto:eof
 
 :call_echos_stack
-if not defined ECHOS_STACK ( set "CURRENT_SCRIPT=%~nx0" & goto:eof ) else ( call "%project_dir%\tools\batcolors\echos.bat" :stack %~nx0 )
+if not defined ECHOS_STACK ( set "CURRENT_SCRIPT=%~nx0" & goto:eof ) else ( call "%t_build_dir%\tools\batcolors\echos.bat" :stack %~nx0 )
 goto:eof

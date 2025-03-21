@@ -23,20 +23,21 @@ setlocal enableextensions enabledelayedexpansion
 ::##################################################
 for %%i in ("%~dp0") do SET "update-version_dir=%%~fi"
 set "QUIET_PRJ=true"
+call "%update-version_dir%\tools\init.bat"
 call <NUL "%update-version_dir%\..\senv.bat"
 set "QUIET_PRJ="
 
 ::##################################################
 ::  GET PROJECT VERSION
 ::##################################################
-%_task% "Must get version from '%project_dir%\version.txt'"
+%_task% "Must get version from '%PRJ_DIR%\version.txt'"
 set "project_version="
 call "%update-version_dir%\%get-version.bat"
 if not defined project_version (
-  %_fatal% "Unable to find version from '%project_dir%\version.txt'" 11
+  %_fatal% "Unable to find version from '%PRJ_DIR%\version.txt'" 11
 )
 set "version=%project_version%"
-%_ok% "version '%version%' found in '%project_dir%\version.txt', release title '%project_title%'"
+%_ok% "version '%version%' found in '%PRJ_DIR%\version.txt', release title '%project_title%'"
 set "version_release=%version:-SNAPSHOT=%"
 
 if not "%version_release%"=="%version%" (
@@ -51,18 +52,18 @@ if not "%version_release%"=="%version%" (
 ::##################################################
 ::  GIT DESCRIBE AND STATUS
 ::##################################################
-for /f %%i in ('git -C "%project_dir%" describe --long --tags --dirty --always') do set git_describe=%%i
-for /f %%i in ('git -C "%project_dir%" describe --tags^^^ --abbrev^=0 2^>NUL') do set "git_tag=%%i"
+for /f %%i in ('git -C "%PRJ_DIR%" describe --long --tags --dirty --always') do set git_describe=%%i
+for /f %%i in ('git -C "%PRJ_DIR%" describe --tags^^^ --abbrev^=0 2^>NUL') do set "git_tag=%%i"
 set "is_dirty="
 if not "%git_describe:-dirty=%" == "%git_describe%" ( set "is_dirty=1" )
 
-for /f %%i in ('bash -c "cygpath '%project_dir%'"') do set "project_path=%%i"
-%_info% "project_path '%project_path%' from project_dir='%project_dir%'"
+for /f %%i in ('bash -c "cygpath '%PRJ_DIR%'"') do set "project_path=%%i"
+%_info% "project_path '%project_path%' from project_dir='%PRJ_DIR%'"
 
 %_task% "Must check if Git repository is dirty"
 set "is_dirty_files="
 set "is_dirty_src="
-for /f "tokens=2" %%i in ('git -C "%project_dir%" status --porcelain') do (
+for /f "tokens=2" %%i in ('git -C "%PRJ_DIR%" status --porcelain') do (
     if not "%%i"=="" (
         if not "%%i"=="version.txt" (
             if not "%%i"=="CHANGELOG.md" (
@@ -89,7 +90,7 @@ if not defined git_tag (
   set "git_tag=v0.0.0"
   set "git_is_snapshot=1"
   set "git_is_release="
-  for /f %%i in ('git -C "%project_dir%" rev-list --count HEAD') do set commit_count=%%i
+  for /f %%i in ('git -C "%PRJ_DIR%" rev-list --count HEAD') do set commit_count=%%i
   if "!commit_count!"=="0" (
     %_info% "No commit ever done in this repository with no history or tag"
     set "commit_count="
@@ -173,7 +174,7 @@ if not defined askForNewSnapshot (
 )
 
 %_warning% "New modifications detected since last release '%version%' (%askForNewSnapshot%)"
-git -C "%project_dir%" diff --cached --quiet
+git -C "%PRJ_DIR%" diff --cached --quiet
 if errorlevel 1 (
     %_fatal% "Please commit or stash or reset your indexed/staged changes first, to allow version.txt modification and individual commit" 111
 )
@@ -213,43 +214,43 @@ set /p "title=Enter title for '%relVersion%': "
 if "!title!"=="" ( %_fatal% "Empty title for '%relVersion%'" 311 )
 
 verify >nul
-echo %appver% -- !title!> "%project_dir%\version.txt"
+echo %appver% -- !title!> "%PRJ_DIR%\version.txt"
 if errorlevel 1 (
-  %_fatal% "Unable to set %appver% in '%project_dir%\version.txt'" 256
+  %_fatal% "Unable to set %appver% in '%PRJ_DIR%\version.txt'" 256
 )
 
 %_task% "Must enter multi-line description for CHANGELOG.md next release '%relVersion%' (PRJ_REL_DESCRIPTION not set)"
 %_info% "You will be able to edit that description at any time in the version.txt file"
-echo.>> "%project_dir%\version.txt"
+echo.>> "%PRJ_DIR%\version.txt"
 set "at_least_one_line="
 %_info% "Enter description for '%relVersion%'. Type 'END' on a new line to finish:"
 :readInput
 set /p "line=> "
 if /i "%line%"=="END" goto endInput
 if "%line: =%"=="" goto readInput
-echo.%line%>> "%project_dir%\version.txt"
+echo.%line%>> "%PRJ_DIR%\version.txt"
 set at_least_one_line=1
 goto readInput
 :endInput
 if not defined at_least_one_line ( %_fatal% "Empty description for '%relVersion%'" 312 )
 
-git -C "%project_dir%" add -- "version.txt"
+git -C "%PRJ_DIR%" add -- "version.txt"
 if errorlevel 1 ( call:restore-version
     %_fatal% "ERROR unable to add version.txt" 112 )
 
-if exist "%project_dir%\pom.xml" (
+if exist "%PRJ_DIR%\pom.xml" (
   call "%update-version_dir%\t_build_maven.bat" set "!appver!"
   if errorlevel 1 (%_fatal% "ERROR unable to update pom.xml version" 114)
-  git -C "%project_dir%" add "pom.xml"
+  git -C "%PRJ_DIR%" add "pom.xml"
   if errorlevel 1 (
     call:restore-version
-    %_fatal% "Unable add pom.xml to index of '%project_dir%'" 212 
+    %_fatal% "Unable add pom.xml to index of '%PRJ_DIR%'" 212 
   )
 ) else (
   %_info% "pom.xml not found, skipping maven version update"
 )
 
-git -C "%project_dir%" commit -m "chore(release): prepare for new '!appver!' from previous release '%VERSION%'"
+git -C "%PRJ_DIR%" commit -m "chore(release): prepare for new '!appver!' from previous release '%VERSION%'"
 if errorlevel 1 ( call:restore-version
     %_fatal% "ERROR unable to commit version.txt" 113 )
 
@@ -261,11 +262,11 @@ goto:eof
 ::##################################################
 :restore-version
 %_task% "Must restore version.txt (to '%project_version%')"
-sed -i "1s/^.*\?--/%project_version% --/" "%project_dir%\version.txt"
+sed -i "1s/^.*\?--/%project_version% --/" "%PRJ_DIR%\version.txt"
 if errorlevel 1 (
-  %_fatal% "Unable to restore %project_version% in '%project_dir%\version.txt'" 256
+  %_fatal% "Unable to restore %project_version% in '%PRJ_DIR%\version.txt'" 256
 )
-if exist "%project_dir%\pom.xml" (
+if exist "%PRJ_DIR%\pom.xml" (
   %_task% "Must restore maven version to '%project_version%'"
   call "%update_version_dir%\t_build_maven.bat" set "%project_version%"
   if errorlevel 1 (%_fatal% "Error upgrading maven to '%project_version%'")
@@ -281,7 +282,7 @@ goto:eof
 if defined UV_FORCE_REL (
   if defined is_dirty_files (
     %_warning% "(make_new_release) Repository is not clean, but 'UV_FORCE_REL' is set"
-    git -C "%project_dir%" status --porcelain | grep -v version.txt | grep -v CHANGELOG.md
+    git -C "%PRJ_DIR%" status --porcelain | grep -v version.txt | grep -v CHANGELOG.md
     goto:make_new_release_check
   )
 )
@@ -289,7 +290,7 @@ set "confirm=y"
 if defined is_dirty_files (
   set "confirm=N"
   %_warning% "(make_new_release) Repository is not clean (and 'UV_FORCE_REL' is not set):"
-  git -C "%project_dir%" status --porcelain | grep -v version.txt | grep -v CHANGELOG.md
+  git -C "%PRJ_DIR%" status --porcelain | grep -v version.txt | grep -v CHANGELOG.md
   set /p "confirm=Do you want to make a release? (y/N): "
 ) else (
   %_ok% "(make_new_release) Repository is clean. Proceed with release."
@@ -300,7 +301,7 @@ if /i "!confirm!" neq "y" (
 )
 :make_new_release_check
 
-if exist "%project_dir%\pom.xml" (
+if exist "%PRJ_DIR%\pom.xml" (
   :: Added: Check if pom.xml version is a snapshot
   call "%update-version_dir%\t_build_maven.bat" check-snapshot
   if %ERRORLEVEL% equ 0 (
@@ -328,19 +329,19 @@ if defined is_release (
 )
 if defined is_snapshot (
   %_task% "Must update version.txt from '%version%' to '%version_release%'"
-  sed -i "1s/^.*\?--/%version_release% --/" "%project_dir%\version.txt"
+  sed -i "1s/^.*\?--/%version_release% --/" "%PRJ_DIR%\version.txt"
   if errorlevel 1 (
     %_fatal% "(make_new_release) Unable to update version.txt from '%version%' to '%version_release%'" 32
   )
   %_ok% "(make_new_release) version.txt updated from '%version%' to '%version_release%'"
 
-  if exist "%project_dir%\pom.xml" (
+  if exist "%PRJ_DIR%\pom.xml" (
     %_task% "(make_new_release) Must update maven version from '%version%' to '%version_release%'"
-    call "%project_dir%\tools\t_build_maven.bat" set "%version_release%"
+    call "%PRJ_DIR%\tools\t_build_maven.bat" set "%version_release%"
     %_ok% "(make_new_release) Maven version updated from '%version%' to '%version_release%'"
     
     REM Stage pom.xml immediately after update
-    git -C "%project_dir%" add "pom.xml"
+    git -C "%PRJ_DIR%" add "pom.xml"
     if errorlevel 1 ( %_fatal% "Unable to stage pom.xml changes" 214 )
   )
 ) else (
@@ -351,18 +352,18 @@ call:check_update-changelog "release version '%version_release%'"
 set "make_new_release="
 
 %_task% "Must reset Git repository, add version.txt and CHANGELOG and commit"
-git -C "%project_dir%" reset
-if errorlevel 1 ( %_fatal% "Unable to reset index of '%project_dir%'" 211 )
-git -C "%project_dir%" add "version.txt"
-if errorlevel 1 ( %_fatal% "Unable add version.txt to index of '%project_dir%'" 213 )
-git -C "%project_dir%" add "CHANGELOG.md"
-if errorlevel 1 ( %_fatal% "Unable add CHANGELOG.md to index of '%project_dir%'" 214 )
-if exist "%project_dir%\pom.xml" (
-  git -C "%project_dir%" add "pom.xml"
-  if errorlevel 1 ( %_fatal% "Unable add pom.xml to index of '%project_dir%'" 215 )
+git -C "%PRJ_DIR%" reset
+if errorlevel 1 ( %_fatal% "Unable to reset index of '%PRJ_DIR%'" 211 )
+git -C "%PRJ_DIR%" add "version.txt"
+if errorlevel 1 ( %_fatal% "Unable add version.txt to index of '%PRJ_DIR%'" 213 )
+git -C "%PRJ_DIR%" add "CHANGELOG.md"
+if errorlevel 1 ( %_fatal% "Unable add CHANGELOG.md to index of '%PRJ_DIR%'" 214 )
+if exist "%PRJ_DIR%\pom.xml" (
+  git -C "%PRJ_DIR%" add "pom.xml"
+  if errorlevel 1 ( %_fatal% "Unable add pom.xml to index of '%PRJ_DIR%'" 215 )
 )
-git -C "%project_dir%" commit -m "chore(release): set new 'v%version_release%' from previous release '%git_tag%'"
-if errorlevel 1 ( %_fatal% "Unable commit version.txt/CHANGELOG.md to index of '%project_dir%'" 214 )
+git -C "%PRJ_DIR%" commit -m "chore(release): set new 'v%version_release%' from previous release '%git_tag%'"
+if errorlevel 1 ( %_fatal% "Unable commit version.txt/CHANGELOG.md to index of '%PRJ_DIR%'" 214 )
 %_ok% "Git repository reset, version.txt and CHANGELOG.md added to index and committed"
 
 ::##################################################
@@ -370,7 +371,7 @@ if errorlevel 1 ( %_fatal% "Unable commit version.txt/CHANGELOG.md to index of '
 ::##################################################
 %_task% "Must check if git tag 'v%version_release%' is needed"
 set "existing_tag="
-for /f %%i in ('git -C "%project_dir%" tag -l "v%version_release%"') do set "existing_tag=%%i"
+for /f %%i in ('git -C "%PRJ_DIR%" tag -l "v%version_release%"') do set "existing_tag=%%i"
 if defined existing_tag (
   %_fatal% "Git tag 'v%version_release%' already exists" 344
 )
@@ -393,8 +394,8 @@ if defined FORCE_UC_GEN (
   call:generate-changelog %1
   goto:eof
 )
-if not exist "%project_dir%\CHANGELOG.md" (
-  %_info% "(update-changelog) No CHANGELOG.md found in '%project_dir%'"
+if not exist "%PRJ_DIR%\CHANGELOG.md" (
+  %_info% "(update-changelog) No CHANGELOG.md found in '%PRJ_DIR%'"
   call:generate-changelog %1
   goto:eof
 )
@@ -412,7 +413,7 @@ if defined is_snapshot (
   %_info% "(update-changelog) Force CHANGELOG.md check while in SNAPSHOT (FORCE_UC set)"
 )
 :do_update-changelog
-for /f %%i in ('bash -c "cygpath '%project_dir%\CHANGELOG.md'"') do set "changelog_path=%%i"
+for /f %%i in ('bash -c "cygpath '%PRJ_DIR%\CHANGELOG.md'"') do set "changelog_path=%%i"
 for /f %%i in ('bash -c "date +%%s -r "%changelog_path%""') do set "changelog_timestamp=%%i"
 if not defined changelog_timestamp (
   %_fatal% "(update-changelog) Unable to get CHANGELOG.md timestamp" 34
@@ -435,13 +436,13 @@ goto:eof
 ::##################################################
 :generate-changelog
 %_task% "(update-changelog) Must update/refresh CHANGELOG.md for %~1"
-call "%project_dir%\tools\update-changelog.bat" latest
+call "%PRJ_DIR%\tools\update-changelog.bat" latest
 if errorlevel 1 (
-  %_fatal% "Unable to update '%project_dir%\CHANGELOG.md'" 129
+  %_fatal% "Unable to update '%PRJ_DIR%\CHANGELOG.md'" 129
 )
-%_ok% "'%project_dir%\CHANGELOG.md' updated/refreshed"
+%_ok% "'%PRJ_DIR%\CHANGELOG.md' updated/refreshed"
 goto:eof
 
 :call_echos_stack
-if not defined ECHOS_STACK ( set "CURRENT_SCRIPT=%~nx0" & goto:eof ) else ( call "%project_dir%\tools\batcolors\echos.bat" :stack %~nx0 )
+if not defined ECHOS_STACK ( set "CURRENT_SCRIPT=%~nx0" & goto:eof ) else ( call "%PRJ_DIR%\tools\batcolors\echos.bat" :stack %~nx0 )
 goto:eof
