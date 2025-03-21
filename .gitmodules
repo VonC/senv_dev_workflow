@@ -1,4 +1,4 @@
-[submodule "tools/batcolors"]
-	path = tools/batcolors
+[submodule "batcolors"]
+	path = batcolors
 	url = https://github.com/VonC/batcolors
 	branch = legacy

@@ -26,14 +26,9 @@ if not defined PRJ_DIR_NAME (
 set "okInit="
 if not exist "%init_workflow_dir%\batcolors\echos.bat" (
     echo WARN: Missing submodules
-    if not exist "%init_workflow_dir%\..\.gitmodules" (
-      echo INFO: Executing in %init_workflow_dir%' 'git submodule add -b legacy -- https://github.com/VonC/batcolors "%init_workflow_dir%\batcolors"'
-      git -C "%init_workflow_dir%" config advice.addIgnoredFile false
-      git -C "%init_workflow_dir%" submodule add -b legacy -- https://github.com/VonC/batcolors "%init_workflow_dir%\batcolors"
-      if errorlevel 1 (
+    if not exist "%init_workflow_dir%\.gitmodules" (
           echo FATAL: Submodule batcolors not properly added
           call:iExitBatch 6
-      )
     ) else (
       echo INFO: Executing 'git submodule update --init' in '%init_workflow_dir%'
       git -C "%init_workflow_dir%" submodule update --init
@@ -52,6 +47,11 @@ if not defined okInit (
   echo FATAL: Submodules not properly initialized
   call:iExitBatch 6
 )
+
+if not exist "%PRJ_DIR%\tools\batcolors" (
+  mklink /J "%PRJ_DIR%\tools\batcolors" "%init_workflow_dir%\batcolors"
+)
+
 if defined okInit (
   if not defined QUIET_PRJ ( %_ok% "%okInit%" )
   set "okInit="
@@ -60,14 +60,7 @@ if defined okInit (
 ::##################################################
 ::  SET PROJECT DIRECTORY
 ::##################################################
-if defined IS_HOSTED (
-  set "DIR=%~dp0.."
-) else (
-  set "DIR=%~dp0..\.."
-)
-for %%i in ("%~dp0..") do SET "workflow_dir=%%~fi"
-for /f "tokens=* delims=\" %%i in ("%workflow_dir%") do SET "workflow_dir_name=%%~ni"
-for /f "tokens=* delims=" %%i in ('cygpath -u "%workflow_dir%"') do SET "workflow_dir_unix=%%~i"
+set "workflow_dir=%init_workflow_dir%"
 
 %_info% "Workflow directory is '%workflow_dir%'"
 ::##################################################
@@ -102,5 +95,5 @@ popd
 exit /b
 
 :call_echos_stack
-if not defined ECHOS_STACK ( set "CURRENT_SCRIPT=%~nx0" & goto:eof ) else ( call "%project_dir%\tools\batcolors\echos.bat" :stack %~nx0 )
+if not defined ECHOS_STACK ( set "CURRENT_SCRIPT=%~nx0" & goto:eof ) else ( call "%PRJ_DIR%\tools\batcolors\echos.bat" :stack %~nx0 )
 goto:eof
