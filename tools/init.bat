@@ -11,10 +11,15 @@ REM For emojis support:
 chcp 65001 >nul
 
 ::##################################################
-::  SET VERSIONS OF SOFTWARES
+::  CHECK PRESENCE OF REQUIRED ENV VARIABLE
 ::##################################################
-call switchpy 3.13 local
+if not defined PRJ_DIR (
+  %_fatal% "The project dir variable 'PRJ_DIR' is not set. Make sure it exists before running the workflow" 1
+)
 
+if not defined PRJ_DIR_NAME (
+  %_fatal% "The project dir name variable 'PRJ_DIR_NAME' is not set. Make sure it exists before running the workflow" 2
+)
 ::##################################################
 ::  CHECK BATCOLORS SUBMODULE
 ::##################################################
@@ -55,76 +60,21 @@ if defined okInit (
 ::##################################################
 ::  SET PROJECT DIRECTORY
 ::##################################################
-for %%i in ("%~dp0..") do SET "project_dir=%%~fi"
-for /f "tokens=* delims=\" %%i in ("%project_dir%") do SET "project_dir_name=%%~ni"
-for /f "tokens=* delims=" %%i in ('cygpath -u "%project_dir%"') do SET "project_dir_unix=%%~i"
-
-::##################################################
-::  EXISTENCY OF REQUIRED DIRECTORY / FILES
-::##################################################
-if not exist "%init_dir%\..\log" (
-  %_info% "'log' directory does not exist"
-  %_task% "Must create '%init_dir%\..\log'"
-  mkdir "%init_dir%\..\log"
-  if errorlevel 1 (
-    %_error% "Unable to create '%init_dir%\..\log'"
-    call:iExitBatch 6
-  )
-  %_ok% "Directory '%init_dir%\..\log' created"
-)
-
-if not exist "%init_dir%\..\screenshots" (
-  %_info% "'screenshots' directory does not exist"
-  %_task% "Must create '%init_dir%\..\screenshots'"
-  mkdir "%init_dir%\..\screenshots"
-  if errorlevel 1 (
-    %_error% "Unable to create '%init_dir%\..\screenshots'"
-    call:iExitBatch 6
-  )
-  %_ok% "Directory '%init_dir%\..\screenshots' created"
-)
-
-if not exist "%init_dir%\..\output" (
-  %_info% "'output' directory does not exist"
-  %_task% "Must create '%init_dir%\..\output'"
-  mkdir "%init_dir%\..\output"
-  if errorlevel 1 (
-    %_error% "Unable to create '%init_dir%\..\output'"
-    call:iExitBatch 6
-  )
-  %_ok% "Directory '%init_dir%\..\output' created"
-)
-
-%_info% "Checking for '%init_dir%\get_date.sh' script"
-if not exist "%init_dir%\get_date.sh" (
-  %_warn% "'%init_dir%\get_date.sh' not found"
-  %_task% "Creating '%init_dir%\get_date.sh'"
-  echo #!/bin/bash > "%init_dir%\get_date.sh"
-  echo date +%%%%Y-%%%%m-%%%%d >> "%init_dir%\get_date.sh"
-  if errorlevel 1 (
-      %_fatal% "Error creating '%init_dir%\get_date.sh'" 4
-  )
-  %_ok% "'%init_dir%\get_date.sh' created"
-)
-
-@REM ::##################################################
-@REM ::  CHECK PYTHON REQUIREMENTS
-@REM ::##################################################
-%_task% "Checking Python requirements"
-python "%init_dir%\..\requirements-check.py"
-if errorlevel 1 (
-    %_error% "Missing or outdated Python packages"
-    %_task% "Installing requirements"
-    pip install -r "%init_dir%\..\requirements.txt"
-    if errorlevel 1 (
-        %_fatal% "Failed to install requirements" 1
-    )
-    %_ok% "Requirements installed successfully"
+if defined IS_HOSTED (
+  set "DIR=%~dp0.."
 ) else (
-    %_ok% "All Python requirements are satisfied"
+  set "DIR=%~dp0..\.."
 )
+for %%i in ("%~dp0..") do SET "workflow_dir=%%~fi"
+for /f "tokens=* delims=\" %%i in ("%workflow_dir%") do SET "workflow_dir_name=%%~ni"
+for /f "tokens=* delims=" %%i in ('cygpath -u "%workflow_dir%"') do SET "workflow_dir_unix=%%~i"
 
-
+%_info% "Workflow directory is '%workflow_dir%'"
+::##################################################
+::  SETTING PATHS
+::##################################################
+set "VERSION_TXT_FILE=%PRJ_DIR%\version.txt"
+set "POM_FILE=%PRJ_DIR%\pom.xml"
 
 set "INIT_DONE=1"
 goto:eof
