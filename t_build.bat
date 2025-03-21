@@ -102,7 +102,7 @@ if errorlevel 1 (
 )
 set "QUIET_PRJ=true"
 %_stack_call% "%t_build_dir%\tools\init.bat"
-%_stack_call% <NUL "%PRJ_DIR%\..\senv.bat"
+%_stack_call% <NUL "%PRJ_DIR%\senv.bat"
 set "QUIET_PRJ="
 
 goto:eof
@@ -165,7 +165,7 @@ set "cmd="
 set "build_params="
 set "build_params-uv="
 set "SKIP_LOCAL="
-call "%t_build_dir%\..\senv.bat" unset
+call <NUL "%PRJ_DIR%\senv.bat" unset
 set "t_build_dir="
 set "PRJ_REL_TITLE="
 set "build_must_fail="
