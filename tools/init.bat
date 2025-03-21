@@ -1,7 +1,7 @@
 @echo off
 
-for %%i in ("%~dp0") do SET "init_dir=%%~fi"
-set "init_dir=%init_dir:~0,-1%"
+for %%i in ("%~dp0") do SET "init_workflow_dir=%%~fi"
+set "init_workflow_dir=%init_workflow_dir:~0,-1%"
 
 REM https://stackoverflow.com/questions/57131654/using-utf-8-encoding-chcp-65001-in-command-prompt-windows-powershell-window
 REM But should still work in Windows terminal (https://www.microsoft.com/p/windows-terminal/9n0dx20hk701, https://github.com/microsoft/terminal)
@@ -24,28 +24,28 @@ if not defined PRJ_DIR_NAME (
 ::  CHECK BATCOLORS SUBMODULE
 ::##################################################
 set "okInit="
-if not exist "%init_dir%\batcolors\echos.bat" (
+if not exist "%init_workflow_dir%\batcolors\echos.bat" (
     echo WARN: Missing submodules
-    if not exist "%init_dir%\..\.gitmodules" (
-      echo INFO: Executing  in %CD%' 'git submodule add -b legacy -- https://github.com/VonC/batcolors tools/batcolors'
-      git config advice.addIgnoredFile false
-      git submodule add -b legacy -- https://github.com/VonC/batcolors tools/batcolors
+    if not exist "%init_workflow_dir%\..\.gitmodules" (
+      echo INFO: Executing in %init_workflow_dir%' 'git submodule add -b legacy -- https://github.com/VonC/batcolors "%init_workflow_dir%\batcolors"'
+      git -C "%init_workflow_dir%" config advice.addIgnoredFile false
+      git -C "%init_workflow_dir%" submodule add -b legacy -- https://github.com/VonC/batcolors "%init_workflow_dir%\batcolors"
       if errorlevel 1 (
           echo FATAL: Submodule batcolors not properly added
           call:iExitBatch 6
       )
     ) else (
-      echo INFO: Executing 'git submodule update --init in %CD%'
-      git submodule update --init
+      echo INFO: Executing 'git submodule update --init' in '%init_workflow_dir%'
+      git -C "%init_workflow_dir%" submodule update --init
       if errorlevel 1 (
           echo FATAL: Submodules not properly initialized
           call:iExitBatch 6
       )
     )
-    call  "%init_dir%\batcolors\echos_macros.bat" export
+    call  "%init_workflow_dir%\batcolors\echos_macros.bat" export
     set "okInit=OK: Submodules initialized"
 ) else (
-  call  "%init_dir%\batcolors\echos_macros.bat" export
+  call  "%init_workflow_dir%\batcolors\echos_macros.bat" export
   set "okInit=Submodule already initialized"
 )
 if not defined okInit (
