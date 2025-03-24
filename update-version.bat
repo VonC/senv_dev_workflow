@@ -436,7 +436,7 @@ goto:eof
 ::##################################################
 :generate-changelog
 %_task% "(update-changelog) Must update/refresh CHANGELOG.md for %~1"
-call "%PRJ_DIR%\tools\update-changelog.bat" latest
+call "%PRJ_DIR%\tools\dev_workflow\update-changelog.bat" latest
 if errorlevel 1 (
   %_fatal% "Unable to update '%PRJ_DIR%\CHANGELOG.md'" 129
 )
