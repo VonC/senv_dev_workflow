@@ -12,7 +12,7 @@
 for %%i in ("%~dp0") do SET "t_build_maven_dir=%%~fi"
 set "t_build_maven_dir=%t_build_maven_dir:~0,-1%"
 
-call "%t_build_maven_dir%\tools\init.bat"
+call "%t_build_maven_dir%\init.bat"
 call <NUL "%PRJ_DIR%\senv.bat"
 
 if not exist "%POM_FILE%" ( %_fatal% "Error: '%POM_FILE%' not found in the current directory." 1)

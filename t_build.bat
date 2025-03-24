@@ -24,7 +24,7 @@
 for %%i in ("%~dp0") do SET "t_build_dir=%%~fi"
 set "t_build_dir=%t_build_dir:~0,-1%"
 
-call "%t_build_dir%\tools\init.bat"
+call "%t_build_dir%\init.bat"
 call <NUL "%PRJ_DIR%\senv.bat"
 set "QUIET_PRJ=true"
 
