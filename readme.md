@@ -2,6 +2,9 @@
 
 A Git workflow automation tool for managing software versions between snapshots and releases, with integrated changelog generation.
 
+## Disclaimer
+This framework uses a framework named `senv` that is not yet public. 
+
 ## Overview
 
 This tool automates the version management process between development (SNAPSHOT) and release versions, using a central `version.txt` file as the source of truth. It integrates with Maven projects and provides colored console output for better visibility.
