@@ -305,15 +305,13 @@ if exist "%PRJ_DIR%\pom.xml" (
   :: Added: Check if pom.xml version is a snapshot
   call "%update-version_dir%\t_build_maven.bat" check-snapshot
   if %ERRORLEVEL% equ 0 (
-      :: Check if version.txt is also a snapshot
-      if defined is_snapshot (
-          :: Both pom.xml and version.txt are snapshot, proceed with release update
-          %_info% "pom.xml and version.txt are both snapshots. Updating to release."
-      ) else (
-          :: pom.xml is snapshot, but version.txt is release, error
-          %_fatal% "(make_new_release) pom.xml version is a SNAPSHOT, but version.txt indicates a release. Please update pom.xml to a release version first." 345
-      )
-  )
+    :: Check if version.txt is also a snapshot
+    :: Both pom.xml and version.txt are snapshot, proceed with release update
+    %_info% "pom.xml and version.txt are both snapshots. Updating to release."
+    ) else (
+        :: pom.xml is snapshot, but version.txt is release, error
+        %_fatal% "(make_new_release) pom.xml version is a SNAPSHOT, but version.txt indicates a release. Please update pom.xml to a release version first." 345
+    )
 ) else (
   %_info% "pom.xml not found, skipping maven snapshot check"
 )
