@@ -62,7 +62,7 @@ if /i "%~1"=="check-snapshot" (
     setlocal EnableDelayedExpansion
     set "version_pom="
 
-    for /f "tokens=*" %%a in ('powershell "%t_build_maven_dir%\mvn_get_version.ps1" "%POM_FILE%"') do (
+    for /f "tokens=*" %%a in ('powershell "%DEV_WORKFLOW_DIR%\mvn_get_version.ps1" "%POM_FILE%"') do (
         set "version_pom=%%a"
         goto :version_found
     )

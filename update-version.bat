@@ -335,7 +335,7 @@ if defined is_snapshot (
 
   if exist "%PRJ_DIR%\pom.xml" (
     %_task% "(make_new_release) Must update maven version from '%version%' to '%version_release%'"
-    call "%PRJ_DIR%\tools\t_build_maven.bat" set "%version_release%"
+    call "%DEV_WORKFLOW_DIR%\t_build_maven.bat" set "%version_release%"
     %_ok% "(make_new_release) Maven version updated from '%version%' to '%version_release%'"
     
     REM Stage pom.xml immediately after update
@@ -434,7 +434,7 @@ goto:eof
 ::##################################################
 :generate-changelog
 %_task% "(update-changelog) Must update/refresh CHANGELOG.md for %~1"
-call "%PRJ_DIR%\tools\dev_workflow\update-changelog.bat" latest
+call "%DEV_WORKFLOW_DIR%\update-changelog.bat" latest
 if errorlevel 1 (
   %_fatal% "Unable to update '%PRJ_DIR%\CHANGELOG.md'" 129
 )

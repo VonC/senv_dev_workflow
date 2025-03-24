@@ -68,6 +68,11 @@ set "workflow_dir=%init_workflow_dir%"
 ::##################################################
 set "VERSION_TXT_FILE=%PRJ_DIR%\version.txt"
 set "POM_FILE=%PRJ_DIR%\pom.xml"
+set "DEV_WORKFLOW_DIR=%PRJ_DIR%\tools\dev_workflow"
+
+if not exist %DEV_WORKFLOW_DIR% (
+  %_fatal% "Your submodule dev_workflow is not named correctly" 10
+)
 
 set "INIT_DONE=1"
 goto:eof
