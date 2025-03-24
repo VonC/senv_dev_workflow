@@ -160,7 +160,6 @@ set "cmd="
 set "build_params="
 set "build_params-uv="
 set "SKIP_LOCAL="
-echo t_build.bat
 call <NUL "%PRJ_DIR%\senv.bat" unset
 set "t_build_dir="
 set "PRJ_REL_TITLE="
