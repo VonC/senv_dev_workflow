@@ -3,9 +3,8 @@
 setlocal enabledelayedexpansion
 
 for %%i in ("%~dp0") do SET "run_dir=%%~fi"
-
+echo update-tag-message
 set "QUIET_PRJ=true"
-call "%run_dir%\..\tools\init.bat"
 call <NUL "%PRJ_DIR%\senv.bat"
 
 cd "%run_dir%"

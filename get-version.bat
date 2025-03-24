@@ -21,8 +21,6 @@ if "%~1"=="--maven" set "USE_MAVEN=1"
 ::  ===============================================
 ::  INITIALIZE PROJECT VARIABLE AND PATH
 ::  ===============================================
-set "QUIET_PRJ=true"
-call "%~dp0init.bat"
 set "QUIET_PRJ="
 
 ::  ===============================================

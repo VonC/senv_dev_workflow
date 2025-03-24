@@ -22,8 +22,8 @@ setlocal enableextensions enabledelayedexpansion
 ::  INITIAL SETUP
 ::##################################################
 for %%i in ("%~dp0") do SET "update-version_dir=%%~fi"
+echo update-version
 set "QUIET_PRJ=true"
-call "%update-version_dir%\init.bat"
 call <NUL "%PRJ_DIR%\senv.bat"
 set "QUIET_PRJ="
 

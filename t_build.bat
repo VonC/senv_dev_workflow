@@ -24,9 +24,7 @@
 for %%i in ("%~dp0") do SET "t_build_dir=%%~fi"
 set "t_build_dir=%t_build_dir:~0,-1%"
 
-call "%t_build_dir%\init.bat"
 call <NUL "%PRJ_DIR%\senv.bat"
-set "QUIET_PRJ=true"
 
 call %*
 exit /b
@@ -100,9 +98,6 @@ if errorlevel 1 (
   call "%~dp0\tools\batcolors\echos.bat" :fatal "update-version FAILED, code '%ERRORLEVEL%'" 3
   goto:eof
 )
-set "QUIET_PRJ=true"
-%_stack_call% "%t_build_dir%\tools\init.bat"
-%_stack_call% <NUL "%PRJ_DIR%\senv.bat"
 set "QUIET_PRJ="
 
 goto:eof
@@ -165,6 +160,7 @@ set "cmd="
 set "build_params="
 set "build_params-uv="
 set "SKIP_LOCAL="
+echo t_build.bat
 call <NUL "%PRJ_DIR%\senv.bat" unset
 set "t_build_dir="
 set "PRJ_REL_TITLE="

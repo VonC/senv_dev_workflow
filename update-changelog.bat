@@ -3,9 +3,8 @@
 setlocal enabledelayedexpansion
 
 for %%i in ("%~dp0") do SET "run_dir=%%~fi"
-
+echo update-changelog
 set "QUIET_PRJ=true"
-call "%run_dir%\tools\init.bat"
 call <NUL "%PRJ_DIR%\senv.bat"
 
 if errorlevel 1 ( %_fatal% "unable to cd to '%run_dir%'" 1 )
