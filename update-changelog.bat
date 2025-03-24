@@ -8,4 +8,4 @@ set "QUIET_PRJ=true"
 call <NUL "%PRJ_DIR%\senv.bat"
 
 if errorlevel 1 ( %_fatal% "unable to cd to '%run_dir%'" 1 )
-bash -c "\"$(cygpath -u "${PRJ_DIR}")/update-changelog.sh\" %*"
+bash -c "\"$(cygpath -u "${DEV_WORKFLOW_DIR}")/update-changelog.sh\" %*"
