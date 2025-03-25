@@ -4,3 +4,4 @@ log
 allure-results
 screenshots
 output
+/test/
