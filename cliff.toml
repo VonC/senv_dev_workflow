@@ -6,11 +6,6 @@
 # See documentation for more information on available options.
 
 [changelog]
-header = """
-# Changelog ms-base\n
-`ms-base` is a base project that provides all the necessary config for a micro service of MONA
-It contains the senv configuration, the changelog workflow, the build-info endpoint and more\n
-"""
 
 # template for the changelog body
 # https://keats.github.io/tera/docs/#introduction

@@ -5,7 +5,7 @@ UPDATE_CHANGELOG_DIR="$( cd "$( dirname "$(readlink -f "${BASH_SOURCE[0]}")" )" 
 
 main() {
   gcliff=( "$(cygpath -u "${PRGS}/git-cliffs/current/git-cliff.exe")" -c "${DEV_WORKFLOW_DIR}/cliff.toml" -w "${PRJ_DIR}" -s footer -o "${PRJ_DIR}/CHANGELOG.tmp.md" )
-  info "gcliff='${gcliff[*]}'"
+  # info "gcliff='${gcliff[*]}'"
   "${gcliff[@]}" -V
 
   v_tag_name="${1}"
@@ -64,6 +64,8 @@ main() {
   fi
 
   if [[ ${#range[@]} -eq 0 ]];then
+    cat "${PRJ_DIR}/CHANGELOG.tmp.md" >> "${PRJ_DIR}/CHANGELOG.new.md"
+    mv "${PRJ_DIR}/CHANGELOG.new.md" "${PRJ_DIR}/CHANGELOG.tmp.md"
     mv "${PRJ_DIR}/CHANGELOG.tmp.md" "${PRJ_DIR}/CHANGELOG.md"
   else
     if [[ -z "${previous_tag}" ]]; then
@@ -92,6 +94,12 @@ main() {
 
   rm -f "${PRJ_DIR}/CHANGELOG.tmp.md"
   rm -f "${PRJ_DIR}/version.tmp.txt"
+
+  cat "${HEADER_CHANGELOG_FILE}" > "${PRJ_DIR}/CHANGELOG.new.md"
+  echo "" >> "${PRJ_DIR}/CHANGELOG.new.md"  # Add blank line after header
+  cat "${PRJ_DIR}/CHANGELOG.md" >> "${PRJ_DIR}/CHANGELOG.new.md"
+  mv "${PRJ_DIR}/CHANGELOG.new.md" "${PRJ_DIR}/CHANGELOG.md"
+
 }
 
 main "$@"

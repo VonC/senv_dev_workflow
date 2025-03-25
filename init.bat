@@ -11,7 +11,7 @@ REM For emojis support:
 chcp 65001 >nul
 
 ::##################################################
-::  CHECK PRESENCE OF REQUIRED ENV VARIABLE
+::  CHECK PRESENCE OF REQUIRED ENV VARIABLE AND FILES
 ::##################################################
 if not defined PRJ_DIR (
   %_fatal% "The project dir variable 'PRJ_DIR' is not set. Make sure it exists before running the workflow" 1
@@ -19,6 +19,10 @@ if not defined PRJ_DIR (
 
 if not defined PRJ_DIR_NAME (
   %_fatal% "The project dir name variable 'PRJ_DIR_NAME' is not set. Make sure it exists before running the workflow" 2
+)
+
+if not exist "%PRJ_DIR%\changelog-header.md" (
+  %_fatal% "The changelog header file is missing at '%PRJ_DIR%\changelog-header.md'" 3
 )
 ::##################################################
 ::  CHECK BATCOLORS SUBMODULE
@@ -69,6 +73,7 @@ set "workflow_dir=%init_workflow_dir%"
 set "VERSION_TXT_FILE=%PRJ_DIR%\version.txt"
 set "POM_FILE=%PRJ_DIR%\pom.xml"
 set "DEV_WORKFLOW_DIR=%PRJ_DIR%\tools\dev_workflow"
+set "HEADER_CHANGELOG_FILE=%PRJ_DIR%\changelog-header.md"
 
 if not exist %DEV_WORKFLOW_DIR% (
   %_fatal% "Your submodule dev_workflow is not named correctly" 10
