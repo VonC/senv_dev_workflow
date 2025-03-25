@@ -52,7 +52,18 @@ if not "%version_release%"=="%version%" (
 ::##################################################
 ::  GIT DESCRIBE AND STATUS
 ::##################################################
-for /f %%i in ('git -C "%PRJ_DIR%" describe --long --tags --dirty --always') do set git_describe=%%i
+git -C "%PRJ_DIR%" describe --long --tags --dirty --always > NUL 2>NUL
+if errorlevel 1 (
+  %_warning% "No commit ever done in new repository"
+  %_task% "Must make a new snapshot"
+  set "is_snapshot="
+  set "is_release="
+  set "askForNewSnapshot=true"
+  set "version=0.0.0"
+  call:make_new_snapshot
+  goto:eof
+)
+for /f %%i in ('git -C "%PRJ_DIR%" describe --long --tags --dirty --always') do set "git_describe=%%i"
 for /f %%i in ('git -C "%PRJ_DIR%" describe --tags^^^ --abbrev^=0 2^>NUL') do set "git_tag=%%i"
 set "is_dirty="
 if not "%git_describe:-dirty=%" == "%git_describe%" ( set "is_dirty=1" )
