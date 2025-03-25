@@ -223,10 +223,11 @@ if errorlevel 1 (
 %_info% "You will be able to edit that description at any time in the version.txt file"
 echo.>> "%PRJ_DIR%\version.txt"
 set "at_least_one_line="
-%_info% "Enter description for '%relVersion%'. Type 'END' on a new line to finish:"
+%_info% "Enter description for '%relVersion%'. Type 'END' or 'EOF' on a new line to finish:"
 :readInput
 set /p "line=> "
 if /i "%line%"=="END" goto endInput
+if /i "%line%"=="EOF" goto endInput
 if "%line: =%"=="" goto readInput
 echo.%line%>> "%PRJ_DIR%\version.txt"
 set at_least_one_line=1
