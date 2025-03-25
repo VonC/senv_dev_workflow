@@ -52,6 +52,10 @@ if not "%version_release%"=="%version%" (
 ::##################################################
 ::  GIT DESCRIBE AND STATUS
 ::##################################################
+git -C "%PRJ_DIR%" config --local user.name > NUL 2>NUL
+if errorlevel 1 (
+  %_fatal% "You must config your user.name/email first. Use gcu.bat or gcuxx.bat, depending on the identity you need to set" 111
+)
 git -C "%PRJ_DIR%" describe --long --tags --dirty --always > NUL 2>NUL
 if errorlevel 1 (
   %_warning% "No commit ever done in new repository"
