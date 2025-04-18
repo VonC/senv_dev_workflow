@@ -97,12 +97,15 @@ if /i "%~1"=="check-snapshot" (
     )
     
     if defined has_revision (
+        setlocal EnableDelayedExpansion
         %_info% "Updating revision property to %new_version%..."
         :: Using PowerShell for its more powerful text processing capabilities
         sed -i "s/<revision>[^<]*<\/revision>/<revision>%new_version%<\/revision>/g" "%POM_FILE%"
         if !errorlevel! neq 0 (
+            endlocal
             %_fatal% "Error: Failed to update revision property." 5
         )
+        endlocal
     ) else (
         %_infod% "Updating version using Maven..."
         call mvn versions:set -DnewVersion=%new_version% -DgenerateBackupPoms=false
