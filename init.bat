@@ -72,6 +72,7 @@ set "workflow_dir=%init_workflow_dir%"
 ::##################################################
 set "VERSION_TXT_FILE=%PRJ_DIR%\version.txt"
 set "POM_FILE=%PRJ_DIR%\pom.xml"
+set "PACKAGE_JSON_FILE=%PRJ_DIR%\package.json"
 set "DEV_WORKFLOW_DIR=%PRJ_DIR%\tools\dev_workflow"
 set "HEADER_CHANGELOG_FILE=%PRJ_DIR%\changelog-header.md"
 

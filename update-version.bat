@@ -266,6 +266,16 @@ if exist "%PRJ_DIR%\pom.xml" (
   %_info% "pom.xml not found, skipping maven version update"
 )
 
+if exist "%PRJ_DIR%\package.json" (
+  call "%update-version_dir%\t_build_npm.bat" set "!appver!"
+  if errorlevel 1 (%_fatal% "ERROR unable to update package.json version" 115)
+  git -C "%PRJ_DIR%" add "package.json"
+  if errorlevel 1 (
+    call:restore-version
+    %_fatal% "Unable add package.json to index of '%PRJ_DIR%'" 1151 
+  )
+)
+
 git -C "%PRJ_DIR%" commit -m "chore(release): prepare for new '!appver!' from previous release '%VERSION%'"
 if errorlevel 1 ( call:restore-version
     %_fatal% "ERROR unable to commit version.txt" 113 )
@@ -288,6 +298,14 @@ if exist "%PRJ_DIR%\pom.xml" (
   if errorlevel 1 (%_fatal% "Error upgrading maven to '%project_version%'")
 )else (
   %_info% "pom.xml not found, skipping maven restore"
+)
+
+if exist "%PRJ_DIR%\package.json" (
+  %_task% "Must restore package.json version to '%project_version%'"
+  call "%update_version_dir%\t_build_npm.bat" set "%project_version%"
+  if errorlevel 1 (%_fatal% "Error upgrading maven to '%project_version%'")
+)else (
+  %_info% "package.json not found, skipping maven restore"
 )
 goto:eof
 
@@ -332,6 +350,22 @@ if exist "%PRJ_DIR%\pom.xml" (
   %_info% "pom.xml not found, skipping maven snapshot check"
 )
 
+if exist "%PRJ_DIR%\package.json" (
+  %_info% "(make_new_release) Check if package.json version is a snapshot"
+  :: Added: Check if package.json version is a snapshot
+  call "%update-version_dir%\t_build_npm.bat" check-snapshot
+  if %ERRORLEVEL% equ 0 (
+    :: Check if version.txt is also a snapshot
+    :: Both package.json and version.txt are snapshot, proceed with release update
+    %_info% "package.json and version.txt are both snapshots. Updating to release."
+    ) else (
+        :: package.json is snapshot, but version.txt is release, error
+        %_fatal% "(make_new_release) package.json version is a SNAPSHOT, but version.txt indicates a release. Please update package.json to a release version first." 345
+    )
+) else (
+  %_info% "package.json not found, skipping npm snapshot check"
+)
+
 if defined is_release (
   if defined git_is_release (
     if "%git_tag%"==v"%version%" (
@@ -358,6 +392,16 @@ if defined is_snapshot (
     git -C "%PRJ_DIR%" add "pom.xml"
     if errorlevel 1 ( %_fatal% "Unable to stage pom.xml changes" 214 )
   )
+
+  if exist "%PRJ_DIR%\package.json" (
+    %_task% "(make_new_release) Must update maven version from '%version%' to '%version_release%'"
+    call "%DEV_WORKFLOW_DIR%\t_build_npm.bat" set "%version_release%"
+    %_ok% "(make_new_release) Maven version updated from '%version%' to '%version_release%'"
+    
+    REM Stage package.json immediately after update
+    git -C "%PRJ_DIR%" add "package.json"
+    if errorlevel 1 ( %_fatal% "Unable to stage package.json changes" 214 )
+  )
 ) else (
   %_ok% "(make_new_release) version.txt already at release revision '%version%'"
 )
@@ -375,6 +419,10 @@ if errorlevel 1 ( %_fatal% "Unable add CHANGELOG.md to index of '%PRJ_DIR%'" 214
 if exist "%PRJ_DIR%\pom.xml" (
   git -C "%PRJ_DIR%" add "pom.xml"
   if errorlevel 1 ( %_fatal% "Unable add pom.xml to index of '%PRJ_DIR%'" 215 )
+)
+if exist "%PRJ_DIR%\package.json" (
+  git -C "%PRJ_DIR%" add "package.json"
+  if errorlevel 1 ( %_fatal% "Unable add package.json to index of '%PRJ_DIR%'" 216 )
 )
 git -C "%PRJ_DIR%" commit -m "chore(release): set new 'v%version_release%' from previous release '%git_tag%'"
 if errorlevel 1 ( %_fatal% "Unable commit version.txt/CHANGELOG.md to index of '%PRJ_DIR%'" 214 )
