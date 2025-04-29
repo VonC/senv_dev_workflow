@@ -10,20 +10,7 @@ REM https://github.com/microsoft/terminal/blob/4a243f044572146e18e0051badb1b5b3f
 REM For emojis support:
 chcp 65001 >nul
 
-::##################################################
-::  CHECK PRESENCE OF REQUIRED ENV VARIABLE AND FILES
-::##################################################
-if not defined PRJ_DIR (
-  %_fatal% "The project dir variable 'PRJ_DIR' is not set. Make sure it exists before running the workflow" 1
-)
 
-if not defined PRJ_DIR_NAME (
-  %_fatal% "The project dir name variable 'PRJ_DIR_NAME' is not set. Make sure it exists before running the workflow" 2
-)
-
-if not exist "%PRJ_DIR%\changelog-header.md" (
-  %_fatal% "The changelog header file is missing at '%PRJ_DIR%\changelog-header.md'" 3
-)
 ::##################################################
 ::  CHECK BATCOLORS SUBMODULE
 ::##################################################
@@ -59,6 +46,21 @@ if not exist "%PRJ_DIR%\tools\batcolors" (
 if defined okInit (
   if not defined QUIET_PRJ ( %_ok% "%okInit%" )
   set "okInit="
+)
+
+::##################################################
+::  CHECK PRESENCE OF REQUIRED ENV VARIABLE AND FILES
+::##################################################
+if not defined PRJ_DIR (
+  %_fatal% "[dev_workflow] The project dir variable 'PRJ_DIR' is not set. Make sure it exists before running the workflow" 1
+)
+
+if not defined PRJ_DIR_NAME (
+  %_fatal% "[dev_workflow] The project dir name variable 'PRJ_DIR_NAME' is not set. Make sure it exists before running the workflow" 2
+)
+
+if not exist "%PRJ_DIR%\changelog-header.md" (
+  %_fatal% "[dev_workflow] The changelog header file is missing at '%PRJ_DIR%\changelog-header.md'" 3
 )
 
 ::##################################################
