@@ -29,12 +29,12 @@ if not exist "%PRJ_DIR%\changelog-header.md" (
 ::##################################################
 set "okInit="
 if not exist "%init_workflow_dir%\batcolors\echos.bat" (
-    echo WARN: Missing submodules
+    echo [dev_workflow] WARN: Missing submodules
     if not exist "%init_workflow_dir%\.gitmodules" (
-          echo FATAL: Submodule batcolors not properly added
+          echo [dev_workflow] FATAL: Submodule batcolors not properly added
           call:iExitBatch 6
     ) else (
-      echo INFO: Executing 'git submodule update --init' in '%init_workflow_dir%'
+      echo [dev_workflow] INFO: Executing 'git submodule update --init' in '%init_workflow_dir%'
       git -C "%init_workflow_dir%" submodule update --init
       if errorlevel 1 (
           echo FATAL: Submodules not properly initialized
@@ -42,13 +42,13 @@ if not exist "%init_workflow_dir%\batcolors\echos.bat" (
       )
     )
     call  "%init_workflow_dir%\batcolors\echos_macros.bat" export
-    set "okInit=OK: Submodules initialized"
+    set "okInit=[dev_workflow] OK: Submodules initialized"
 ) else (
   call  "%init_workflow_dir%\batcolors\echos_macros.bat" export
-  set "okInit=Submodule already initialized"
+  set "okInit=[dev_workflow] Submodule batcolors already initialized"
 )
 if not defined okInit (
-  echo FATAL: Submodules not properly initialized
+  echo [dev_workflow] FATAL: Submodules not properly initialized
   call:iExitBatch 6
 )
 
@@ -66,7 +66,7 @@ if defined okInit (
 ::##################################################
 set "workflow_dir=%init_workflow_dir%"
 
-%_info% "Workflow directory is '%workflow_dir%'"
+%_info% "[dev_workflow] Workflow directory is '%workflow_dir%'"
 ::##################################################
 ::  SETTING PATHS
 ::##################################################
@@ -77,7 +77,7 @@ set "DEV_WORKFLOW_DIR=%PRJ_DIR%\tools\dev_workflow"
 set "HEADER_CHANGELOG_FILE=%PRJ_DIR%\changelog-header.md"
 
 if not exist %DEV_WORKFLOW_DIR% (
-  %_fatal% "Your submodule dev_workflow is not named correctly" 10
+  %_fatal% "[dev_workflow] Your submodule dev_workflow is not named correctly" 10
 )
 
 set "INIT_DONE=1"
