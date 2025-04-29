@@ -2,6 +2,9 @@
 
 for %%i in ("%~dp0") do SET "init_workflow_dir=%%~fi"
 set "init_workflow_dir=%init_workflow_dir:~0,-1%"
+REM Get parent directory of init_workflow_dir
+for %%i in ("%init_workflow_dir%\..") do set "parent_dir=%%~fi"
+rem echo Parent directory is: %parent_dir%
 
 REM https://stackoverflow.com/questions/57131654/using-utf-8-encoding-chcp-65001-in-command-prompt-windows-powershell-window
 REM But should still work in Windows terminal (https://www.microsoft.com/p/windows-terminal/9n0dx20hk701, https://github.com/microsoft/terminal)
@@ -39,8 +42,8 @@ if not defined okInit (
   call:iExitBatch 6
 )
 
-if not exist "%PRJ_DIR%\tools\batcolors" (
-  mklink /J "%PRJ_DIR%\tools\batcolors" "%init_workflow_dir%\batcolors"
+if not exist "%parent_dir%\batcolors" (
+  mklink /J "%parent_dir%\batcolors" "%init_workflow_dir%\batcolors"
 )
 
 if defined okInit (
