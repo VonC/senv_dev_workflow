@@ -1,5 +1,8 @@
 # Set the default behavior for line endings in Git to LF
 * text=auto eol=lf
 
+.gitignore text eol=lf
+
 # Force CRLF line endings for all .bat files
 *.bat text eol=crlf
+*.ps* text eol=crlf
