@@ -107,7 +107,7 @@ if /i "%~1"=="check-snapshot" (
         )
         endlocal
     ) else (
-        %_infod% "Updating version using Maven..."
+        %_info% "Updating version using Maven..."
         call mvn versions:set -DnewVersion=%new_version% -DgenerateBackupPoms=false
         if !errorlevel! neq 0 (
             %_fatal% "Error: Maven version update failed." 6
