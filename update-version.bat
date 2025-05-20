@@ -32,7 +32,7 @@ set "QUIET_PRJ="
 ::##################################################
 %_task% "Must get version from '%PRJ_DIR%\version.txt'"
 set "project_version="
-call "%update-version_dir%\%get-version.bat"
+call "%update-version_dir%\get-version.bat"
 if not defined project_version (
   %_fatal% "Unable to find version from '%PRJ_DIR%\version.txt'" 11
 )
@@ -349,6 +349,7 @@ if exist "%PRJ_DIR%\pom.xml" (
 ) else (
   %_info% "pom.xml not found, skipping maven snapshot check"
 )
+
 
 if exist "%PRJ_DIR%\package.json" (
   %_info% "(make_new_release) Check if package.json version is a snapshot"
