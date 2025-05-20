@@ -27,9 +27,9 @@ set "QUIET_PRJ="
 ::  CHECK IF VERSION FILE EXISTS
 ::  ===============================================
 if not exist "%VERSION_TXT_FILE%" (
-  ::  ===============================================
-  ::  INITIALIZE DEFAULT VERSION
-  ::  ===============================================
+  REM  ===============================================
+  REM  INITIALIZE DEFAULT VERSION
+  REM  ===============================================
   set "project_version=0.1.0-SNAPSHOT"
   echo !project_version!>"%VERSION_TXT_FILE%"
   goto:eof

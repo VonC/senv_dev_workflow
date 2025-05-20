@@ -124,7 +124,7 @@ if /i "%~1"=="check-snapshot" (
 :check_snapshot
     call :get_version
     if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
-    
+
     echo %version_pom% | findstr /C:"-SNAPSHOT" >nul
     if %ERRORLEVEL% equ 0 (
         %_info% "Current version is a SNAPSHOT: %version_pom%"

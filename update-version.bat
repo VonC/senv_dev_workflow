@@ -339,8 +339,8 @@ if exist "%PRJ_DIR%\pom.xml" (
   :: Added: Check if pom.xml version is a snapshot
   call "%update-version_dir%\t_build_maven.bat" check-snapshot
   if %ERRORLEVEL% equ 0 (
-    :: Check if version.txt is also a snapshot
-    :: Both pom.xml and version.txt are snapshot, proceed with release update
+    REM Check if version.txt is also a snapshot
+    REM Both pom.xml and version.txt are snapshot, proceed with release update
     %_info% "pom.xml and version.txt are both snapshots. Updating to release."
     ) else (
         :: pom.xml is snapshot, but version.txt is release, error
@@ -356,8 +356,8 @@ if exist "%PRJ_DIR%\package.json" (
   :: Added: Check if package.json version is a snapshot
   call "%update-version_dir%\t_build_npm.bat" check-snapshot
   if %ERRORLEVEL% equ 0 (
-    :: Check if version.txt is also a snapshot
-    :: Both package.json and version.txt are snapshot, proceed with release update
+    REM Check if version.txt is also a snapshot
+    REM Both package.json and version.txt are snapshot, proceed with release update
     %_info% "package.json and version.txt are both snapshots. Updating to release."
     ) else (
         :: package.json is snapshot, but version.txt is release, error
