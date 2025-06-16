@@ -37,6 +37,14 @@ if not exist "%init_workflow_dir%\batcolors\echos.bat" (
   call  "%init_workflow_dir%\batcolors\echos_macros.bat" export
   set "okInit=[dev_workflow] Submodule batcolors already initialized"
 )
+
+if not exist "%init_workflow_dir%\shcolors\echos" (
+    echo [dev_workflow] FATAL: Submodule shcolors not properly added
+    call:iExitBatch 7
+) else (
+  set "okInit=%okInit:batcolors=batcolors and shcolors%"
+)
+
 if not defined okInit (
   echo [dev_workflow] FATAL: Submodules not properly initialized
   call:iExitBatch 6
