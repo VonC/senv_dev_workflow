@@ -85,6 +85,9 @@ if not exist %DEV_WORKFLOW_DIR% (
   %_fatal% "[dev_workflow] Your submodule dev_workflow is not named correctly" 10
 )
 
+doskey uc="%DEV_WORKFLOW_DIR%\update-changelog.bat" $*
+doskey uv="%DEV_WORKFLOW_DIR%\update-version.bat" $*
+
 set "INIT_DONE=1"
 goto:eof
 
