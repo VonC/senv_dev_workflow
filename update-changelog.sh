@@ -3,6 +3,9 @@
 
 UPDATE_CHANGELOG_DIR="$( cd "$( dirname "$(readlink -f "${BASH_SOURCE[0]}")" )" && pwd )"
 
+# shellcheck disable=SC1091
+source "${UPDATE_CHANGELOG_DIR}/shcolors/echos"
+
 main() {
   gcliff=( "$(cygpath -u "${PRGS}/git-cliffs/current/git-cliff.exe")" -c "${DEV_WORKFLOW_DIR}/cliff.toml" -w "${PRJ_DIR}" -s footer -o "${PRJ_DIR}/CHANGELOG.tmp.md" )
   # info "gcliff='${gcliff[*]}'"
