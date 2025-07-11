@@ -476,6 +476,11 @@ if defined is_snapshot (
   %_info% "(update-changelog) Force CHANGELOG.md check while in SNAPSHOT (FORCE_UC set)"
 )
 :do_update-changelog
+if defined FORCE_UC (
+  %_info% "(do_update-changelog) FORCE_UC is set, generating changelog"
+  call:generate-changelog %1
+  goto:eof
+)
 for /f %%i in ('bash -c "cygpath '%PRJ_DIR%\CHANGELOG.md'"') do set "changelog_path=%%i"
 for /f %%i in ('bash -c "date +%%s -r "%changelog_path%""') do set "changelog_timestamp=%%i"
 if not defined changelog_timestamp (
