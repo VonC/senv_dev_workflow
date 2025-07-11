@@ -91,6 +91,33 @@ main() {
         info "No lines to delete before line ${last_line}."
       fi
     fi
+
+    # Remove any existing sections with the same version to avoid duplicates
+    if [[ -n "${version}" ]]; then
+      task "Checking for duplicate v${version} sections to remove..."
+
+      # Create a temporary file for the output
+      temp_changelog="${PRJ_DIR}/CHANGELOG.cleaned.md"
+
+      # Run the AWK script to remove any existing section with this version
+      "${UPDATE_CHANGELOG_DIR}/changelog_duplicate_version_section_remover.awk" -v version="v${version}" "${PRJ_DIR}/CHANGELOG.md" >"${temp_changelog}"
+      awk_status=$?
+
+      case $awk_status in
+      0)
+        info "Found and removed existing v${version} section(s)"
+        mv "${temp_changelog}" "${PRJ_DIR}/CHANGELOG.md"
+        ;;
+      2)
+        info "No existing v${version} sections found"
+        rm "${temp_changelog}"
+        ;;
+      *)
+        fatal "Error removing duplicate sections for v${version}" $awk_status
+        ;;
+      esac
+    fi
+
     (
       cat "${PRJ_DIR}/CHANGELOG.tmp.md"
       echo ""
