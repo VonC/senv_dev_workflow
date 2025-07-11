@@ -1,13 +1,13 @@
 #!/bin/bash
 # shellcheck source-path=SCRIPTDIR
 
-UPDATE_CHANGELOG_DIR="$( cd "$( dirname "$(readlink -f "${BASH_SOURCE[0]}")" )" && pwd )"
+UPDATE_CHANGELOG_DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)"
 
 # shellcheck disable=SC1091
 source "${UPDATE_CHANGELOG_DIR}/shcolors/echos"
 
 main() {
-  gcliff=( "$(cygpath -u "${PRGS}/git-cliffs/current/git-cliff.exe")" -c "${DEV_WORKFLOW_DIR}/cliff.toml" -w "${PRJ_DIR}" -s footer -o "${PRJ_DIR}/CHANGELOG.tmp.md" )
+  gcliff=("$(cygpath -u "${PRGS}/git-cliffs/current/git-cliff.exe")" -c "${DEV_WORKFLOW_DIR}/cliff.toml" -w "${PRJ_DIR}" -s footer -o "${PRJ_DIR}/CHANGELOG.tmp.md")
   # info "gcliff='${gcliff[*]}'"
   "${gcliff[@]}" -V
 
@@ -51,8 +51,8 @@ main() {
     commit_hash=$(git -C "${PRJ_DIR}" rev-parse HEAD)
 
     # Include content of version.txt under the ## [unreleased] - line
-    version_content=$(sed '1d' "${PRJ_DIR}/version.txt")  # Remove the first line
-    echo "${version_content}" > "${PRJ_DIR}/version.tmp.txt"
+    version_content=$(sed '1d' "${PRJ_DIR}/version.txt") # Remove the first line
+    echo "${version_content}" >"${PRJ_DIR}/version.tmp.txt"
     sed -i "/## \[unreleased\] -/r ${PRJ_DIR}/version.tmp.txt" "${PRJ_DIR}/CHANGELOG.tmp.md"
 
     # Extract the version and title from the first line of version.txt
@@ -66,8 +66,8 @@ main() {
     fi
   fi
 
-  if [[ ${#range[@]} -eq 0 ]];then
-    cat "${PRJ_DIR}/CHANGELOG.tmp.md" >> "${PRJ_DIR}/CHANGELOG.new.md"
+  if [[ ${#range[@]} -eq 0 ]]; then
+    cat "${PRJ_DIR}/CHANGELOG.tmp.md" >>"${PRJ_DIR}/CHANGELOG.new.md"
     mv "${PRJ_DIR}/CHANGELOG.new.md" "${PRJ_DIR}/CHANGELOG.tmp.md"
     mv "${PRJ_DIR}/CHANGELOG.tmp.md" "${PRJ_DIR}/CHANGELOG.md"
   else
@@ -91,29 +91,33 @@ main() {
         info "No lines to delete before line ${last_line}."
       fi
     fi
-    (cat "${PRJ_DIR}/CHANGELOG.tmp.md"; echo ""; cat "${PRJ_DIR}/CHANGELOG.md") > "${PRJ_DIR}/CHANGELOG.new.md"
+    (
+      cat "${PRJ_DIR}/CHANGELOG.tmp.md"
+      echo ""
+      cat "${PRJ_DIR}/CHANGELOG.md"
+    ) >"${PRJ_DIR}/CHANGELOG.new.md"
     mv "${PRJ_DIR}/CHANGELOG.new.md" "${PRJ_DIR}/CHANGELOG.md"
   fi
 
   rm -f "${PRJ_DIR}/CHANGELOG.tmp.md"
   rm -f "${PRJ_DIR}/version.tmp.txt"
 
-  cat "${HEADER_CHANGELOG_FILE}" > "${PRJ_DIR}/CHANGELOG.new.md"
-  echo "" >> "${PRJ_DIR}/CHANGELOG.new.md"  # Add blank line after header
-  cat "${PRJ_DIR}/CHANGELOG.md" >> "${PRJ_DIR}/CHANGELOG.new.md"
-  
+  cat "${HEADER_CHANGELOG_FILE}" >"${PRJ_DIR}/CHANGELOG.new.md"
+  echo "" >>"${PRJ_DIR}/CHANGELOG.new.md" # Add blank line after header
+  cat "${PRJ_DIR}/CHANGELOG.md" >>"${PRJ_DIR}/CHANGELOG.new.md"
+
   # Label changelog sections with version numbers
   task "Must label changelog sections with version numbers..."
-  "${UPDATE_CHANGELOG_DIR}/changelog_section_labeler.awk" "${PRJ_DIR}/CHANGELOG.new.md" > "${PRJ_DIR}/CHANGELOG.labeled.md"
+  "${UPDATE_CHANGELOG_DIR}/changelog_section_labeler.awk" "${PRJ_DIR}/CHANGELOG.new.md" >"${PRJ_DIR}/CHANGELOG.labeled.md"
   awk_status=$?
-  
+
   if [ $awk_status -ne 0 ]; then
     fatal "Failed to label changelog sections with version numbers" $awk_status
   else
     info "Successfully labeled changelog sections with version numbers"
     mv "${PRJ_DIR}/CHANGELOG.labeled.md" "${PRJ_DIR}/CHANGELOG.new.md"
   fi
-  
+
   mv "${PRJ_DIR}/CHANGELOG.new.md" "${PRJ_DIR}/CHANGELOG.md"
 
 }
