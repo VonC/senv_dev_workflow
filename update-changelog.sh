@@ -101,6 +101,19 @@ main() {
   cat "${HEADER_CHANGELOG_FILE}" > "${PRJ_DIR}/CHANGELOG.new.md"
   echo "" >> "${PRJ_DIR}/CHANGELOG.new.md"  # Add blank line after header
   cat "${PRJ_DIR}/CHANGELOG.md" >> "${PRJ_DIR}/CHANGELOG.new.md"
+  
+  # Label changelog sections with version numbers
+  task "Must label changelog sections with version numbers..."
+  "${UPDATE_CHANGELOG_DIR}/changelog_section_labeler.awk" "${PRJ_DIR}/CHANGELOG.new.md" > "${PRJ_DIR}/CHANGELOG.labeled.md"
+  awk_status=$?
+  
+  if [ $awk_status -ne 0 ]; then
+    fatal "Failed to label changelog sections with version numbers" $awk_status
+  else
+    info "Successfully labeled changelog sections with version numbers"
+    mv "${PRJ_DIR}/CHANGELOG.labeled.md" "${PRJ_DIR}/CHANGELOG.new.md"
+  fi
+  
   mv "${PRJ_DIR}/CHANGELOG.new.md" "${PRJ_DIR}/CHANGELOG.md"
 
 }
