@@ -140,8 +140,8 @@ main() {
         regex=$(echo "$regex" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
         replacement=$(echo "$replacement" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
 
-        # Apply the replacement
-        if sed -i "s|${regex}|${replacement}|g" "${PRJ_DIR}/CHANGELOG.new.md"; then
+        # Use perl instead of sed for complex regex patterns
+        if perl -i -pe "s|$regex|$replacement|g" "${PRJ_DIR}/CHANGELOG.new.md"; then
           info "Applied fix: '${regex}' => '${replacement}'"
         else
           warn "Failed to apply fix: '${regex}' => '${replacement}'"
