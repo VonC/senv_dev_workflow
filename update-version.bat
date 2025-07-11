@@ -149,6 +149,14 @@ if "%~1"=="rel" (
   call:make_new_release
   goto:eof
 )
+
+REM Add support for forcing snapshot creation
+if "%~1"=="snap" (
+  %_task% "Forcing new snapshot creation (snap parameter provided)"
+  goto:make_new_snapshot_forced
+  goto:eof
+)
+
 call:make_new_snapshot
 goto:eof
 
@@ -187,6 +195,9 @@ if not defined askForNewSnapshot (
   %_ok% "No need for new snapshot: current version '%version%' is a RELEASE one without local modification or new commit"
   goto:eof
 )
+
+:make_new_snapshot_forced
+%_warning% "New snapshot will be created for version '%version%'"
 
 %_warning% "New modifications detected since last release '%version%' (%askForNewSnapshot%)"
 git -C "%PRJ_DIR%" diff --cached --quiet
