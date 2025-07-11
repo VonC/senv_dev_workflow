@@ -118,6 +118,43 @@ main() {
     mv "${PRJ_DIR}/CHANGELOG.labeled.md" "${PRJ_DIR}/CHANGELOG.new.md"
   fi
 
+  # Apply custom fixes from .changelog.fixes if it exists
+  if [ -f "${PRJ_DIR}/.changelog.fixes" ]; then
+    task "Must apply custom fixes from .changelog.fixes file..."
+
+    while IFS= read -r line; do
+      # Trim whitespace
+      line=$(echo "$line" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+
+      # Skip comments and empty lines
+      if [[ "$line" == "" || "$line" == \#* ]]; then
+        continue
+      fi
+
+      # Split the line using the => separator
+      if [[ "$line" == *"=>"* ]]; then
+        regex="${line%%=>*}"
+        replacement="${line#*=>}"
+
+        # Trim whitespace from regex and replacement
+        regex=$(echo "$regex" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+        replacement=$(echo "$replacement" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+
+        # Apply the replacement
+        if sed -i "s|${regex}|${replacement}|g" "${PRJ_DIR}/CHANGELOG.new.md"; then
+          info "Applied fix: '${regex}' => '${replacement}'"
+        else
+          warn "Failed to apply fix: '${regex}' => '${replacement}'"
+        fi
+      else
+        warn "Ignoring malformed line in .changelog.fixes: ${line}"
+      fi
+    done <"${PRJ_DIR}/.changelog.fixes"
+    ok ".changelog.fixes applied successfully to CHANGELOG.md"
+  else
+    info "No .changelog.fixes file found, skipping custom fixes"
+  fi
+
   mv "${PRJ_DIR}/CHANGELOG.new.md" "${PRJ_DIR}/CHANGELOG.md"
 
 }
