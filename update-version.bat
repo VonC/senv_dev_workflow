@@ -283,7 +283,7 @@ if exist "%PRJ_DIR%\package.json" (
   git -C "%PRJ_DIR%" add "package.json"
   if errorlevel 1 (
     call:restore-version
-    %_fatal% "Unable add package.json to index of '%PRJ_DIR%'" 1151 
+    %_fatal% "Unable add package.json to index of '%PRJ_DIR%'" 116
   )
 )
 
@@ -301,7 +301,7 @@ goto:eof
 %_task% "Must restore version.txt (to '%project_version%')"
 sed -i "1s/^.*\?--/%project_version% --/" "%PRJ_DIR%\version.txt"
 if errorlevel 1 (
-  %_fatal% "Unable to restore %project_version% in '%PRJ_DIR%\version.txt'" 256
+  %_fatal% "Unable to restore %project_version% in '%PRJ_DIR%\version.txt'" 252
 )
 if exist "%PRJ_DIR%\pom.xml" (
   %_task% "Must restore maven version to '%project_version%'"
@@ -341,7 +341,7 @@ if defined is_dirty_files (
   %_ok% "(make_new_release) Repository is clean. Proceed with release."
 )
 if /i "!confirm!" neq "y" (
-  %_error% "(make_new_release) No release made, since Git repository status is dirty."
+  %_fatal% "(make_new_release) No release made, since Git repository status is dirty." 118
   goto:eof
 )
 :make_new_release_check
