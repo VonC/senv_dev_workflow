@@ -149,35 +149,80 @@ main() {
   if [ -f "${PRJ_DIR}/.changelog.fixes" ]; then
     task "Must apply custom fixes from .changelog.fixes file..."
 
-    while IFS= read -r line; do
-      # Trim whitespace
-      line=$(echo "$line" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+    # Create a temporary Perl script to process all replacements in one pass
+    perl_script="${PRJ_DIR}/tmp_fixes.pl"
 
-      # Skip comments and empty lines
-      if [[ "$line" == "" || "$line" == \#* ]]; then
-        continue
-      fi
+    # Start writing the Perl script with header
+    cat >"${perl_script}" <<'EOF'
+#!/usr/bin/perl -pi
+BEGIN {
+  @patterns = ();
+  @replacements = ();
+}
 
-      # Split the line using the => separator
-      if [[ "$line" == *"=>"* ]]; then
-        regex="${line%%=>*}"
-        replacement="${line#*=>}"
+# Process each line of the input file
+{
+  my $line = $_;
+  foreach my $i (0..$#patterns) {
+    $line =~ s/$patterns[$i]/$replacements[$i]/g;
+  }
+  $_ = $line;
+}
+EOF
 
-        # Trim whitespace from regex and replacement
-        regex=$(echo "$regex" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
-        replacement=$(echo "$replacement" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+    # Add the patterns and replacements to the Perl script
+    echo "BEGIN {" >>"${perl_script}"
 
-        # Use perl instead of sed for complex regex patterns
-        if perl -i -pe "s|$regex|$replacement|g" "${PRJ_DIR}/CHANGELOG.new.md"; then
-          info "Applied fix: '${regex}' => '${replacement}'"
-        else
-          warn "Failed to apply fix: '${regex}' => '${replacement}'"
+    # Check if .changelog.fixes begins with PERL_CODE marker
+    if grep -q "^PERL_CODE$" "${PRJ_DIR}/.changelog.fixes"; then
+      # Extract everything after the PERL_CODE marker and append directly to the script
+      sed -n '/^PERL_CODE$/,${/^PERL_CODE$/d;p}' "${PRJ_DIR}/.changelog.fixes" >>"${perl_script}"
+      info "Using direct Perl code from .changelog.fixes"
+    else
+      # Process in traditional way with => separator
+      while IFS= read -r line; do
+        # Trim whitespace and skip comments/empty lines
+        line=$(echo "$line" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+        if [[ "$line" == "" || "$line" == \#* ]]; then
+          continue
         fi
-      else
-        warn "Ignoring malformed line in .changelog.fixes: ${line}"
-      fi
-    done <"${PRJ_DIR}/.changelog.fixes"
-    ok ".changelog.fixes applied successfully to CHANGELOG.md"
+
+        # Process valid lines with => separator
+        if [[ "$line" == *"=>"* ]]; then
+          regex="${line%%=>*}"
+          replacement="${line#*=>}"
+
+          # Trim whitespace
+          regex=$(echo "$regex" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+          replacement=$(echo "$replacement" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+
+          # Escape special characters for Perl string
+          regex=$(echo "$regex" | sed 's/\\/\\\\/g' | sed 's/"/\\"/g')
+          replacement=$(echo "$replacement" | sed 's/\\/\\\\/g' | sed 's/"/\\"/g')
+
+          # Add to Perl arrays
+          echo "  push @patterns, \"$regex\";" >>"${perl_script}"
+          echo "  push @replacements, \"$replacement\";" >>"${perl_script}"
+
+          info "Added replacement rule: '$regex' => '$replacement'"
+        else
+          warn "Ignoring malformed line in .changelog.fixes: ${line}"
+        fi
+      done <"${PRJ_DIR}/.changelog.fixes"
+    fi
+
+    # Close the BEGIN block
+    echo "}" >>"${perl_script}"
+
+    # Run the Perl script on CHANGELOG.new.md
+    if perl -i "${perl_script}" "${PRJ_DIR}/CHANGELOG.new.md"; then
+      ok "All .changelog.fixes rules applied successfully in a single pass"
+    else
+      warn "Some rules from .changelog.fixes may have failed to apply"
+    fi
+
+    # Clean up
+    rm -f "${perl_script}"
   else
     info "No .changelog.fixes file found, skipping custom fixes"
   fi
