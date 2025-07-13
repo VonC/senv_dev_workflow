@@ -51,6 +51,22 @@ my $found_files = 0;
 my @matched_lines = ();
 my @ignored_lines = ();  # Only for project-specific exempted files
 
+# Debug - Print git status of update-version-dir
+if (defined $ENV{'UV_DEBUG_FILTER'}) {
+    print STDERR "=== Git status of update-version directory ===\n";
+    my $git_status_output = qx(git -C "$update_version_dir" status --porcelain 2>&1);
+    if ($?) {
+        print STDERR "Error executing git status: $!\n";
+    } else {
+        if ($git_status_output) {
+            print STDERR "$git_status_output\n";
+        } else {
+            print STDERR "No changes in update-version directory\n";
+        }
+    }
+    print STDERR "============================================\n\n";
+}
+
 # Process STDIN (git status output)
 while (my $line = <STDIN>) {
     chomp $line;
