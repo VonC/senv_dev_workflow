@@ -5,3 +5,8 @@ allure-results
 screenshots
 output
 /test/
+
+run_filter.cmd
+# Generated temporary files from dirty-status-filter.pl
+git/dirty_files.tmp
+git/dirty_ignored_files.tmp
