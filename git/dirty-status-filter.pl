@@ -57,22 +57,51 @@ while (my $line = <STDIN>) {
     my $is_exempted = 0;
     my $is_project_exempted = 0;
     
+    # Debug - Print the line being processed
+    if (defined $ENV{'UV_DEBUG_FILTER'}) {
+        print STDERR "Processing line: '$line'\n";
+    }
+
     # First check if line matches any project-specific exempted pattern
     for my $pattern (@project_exempted_patterns) {
+        if (defined $ENV{'UV_DEBUG_FILTER'}) {
+            print STDERR "  Checking against project pattern: '$pattern'\n";
+        }
+
         if ($line =~ /(\s+\S+\s+)($pattern)$/) {
             $is_project_exempted = 1;
             $is_exempted = 1;
-            push @ignored_lines, $line;  # Add to ignored lines
+            push @ignored_lines, $line;
+
+            if (defined $ENV{'UV_DEBUG_FILTER'}) {
+                print STDERR "  ✓ MATCHED project pattern! Line added to ignored_lines\n";
+            }
             last;
+        } else {
+            if (defined $ENV{'UV_DEBUG_FILTER'}) {
+                print STDERR "  ✗ No match for project pattern\n";
+            }
         }
     }
-    
+
     # If not project-exempted, check if it matches any standard exempted pattern
     if (!$is_project_exempted) {
         for my $pattern (@exempted_patterns) {
+            if (defined $ENV{'UV_DEBUG_FILTER'}) {
+                print STDERR "  Checking against standard pattern: '$pattern'\n";
+            }
+
             if ($line =~ /(\s+\S+\s+)($pattern)$/) {
                 $is_exempted = 1;
+
+                if (defined $ENV{'UV_DEBUG_FILTER'}) {
+                    print STDERR "  ✓ MATCHED standard pattern! Line will be excluded from matched_lines\n";
+                }
                 last;
+            } else {
+                if (defined $ENV{'UV_DEBUG_FILTER'}) {
+                    print STDERR "  ✗ No match for standard pattern\n";
+                }
             }
         }
     }
@@ -82,6 +111,17 @@ while (my $line = <STDIN>) {
         push @matched_lines, $line;
         $found_files = 1;
         $found_src = 1 if $line =~ /src\//;
+
+        if (defined $ENV{'UV_DEBUG_FILTER'}) {
+            print STDERR "  → Line not exempted, added to matched_lines\n";
+            if ($line =~ /src\//) {
+                print STDERR "  → src/ detected in path\n";
+            }
+        }
+    }
+
+    if (defined $ENV{'UV_DEBUG_FILTER'}) {
+        print STDERR "------------------------------------\n";
     }
 }
 
