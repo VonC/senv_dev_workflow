@@ -175,8 +175,10 @@ if defined is_snapshot (
 set "askForNewSnapshot="
 if defined is_release ( 
   if defined commit_count (
-    if not "%commit_count%"=="0" (
-      set "askForNewSnapshot=%commit_count% new commits"
+    if "%git_tag%"=="v%version_release%" (
+      if not "%commit_count%"=="0" (
+        set "askForNewSnapshot=%commit_count% new commits"
+      )
     )
   )
 )
@@ -192,7 +194,12 @@ if defined is_release (
 )
 
 if not defined askForNewSnapshot (
-  %_ok% "No need for new snapshot: current version '%version%' is a RELEASE one without local modification or new commit"
+  set "or_new_commit="
+  if "%commit_count%"=="0" ( set "or_new_commit= or new commit" )
+  %_ok% "No need for new snapshot: current version '%version%' is a RELEASE one without local modification%or_new_commit%."
+  if not "%commit_count%"=="0" (
+    %_warning% "'%commit_count%' new commits since '%git_tag%': a build rel is needed to apply a new 'v%version%' release tag"
+  )
   goto:eof
 )
 
