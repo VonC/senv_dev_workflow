@@ -22,7 +22,11 @@ setlocal enableextensions enabledelayedexpansion
 ::  INITIAL SETUP
 ::##################################################
 for %%i in ("%~dp0") do SET "update-version_dir=%%~fi"
-echo update-version
+SET "update-version_dir=%update-version_dir:~0,-1%"
+SET "uv_git_dir=%update-version_dir%\git"
+set "dirty_files_tmp=%uv_git_dir%\dirty_files.tmp"
+rem echo %update-version_dir%
+rem echo %uv_git_dir%
 set "QUIET_PRJ=true"
 call <NUL "%PRJ_DIR%\senv.bat"
 set "QUIET_PRJ="
@@ -75,27 +79,48 @@ if not "%git_describe:-dirty=%" == "%git_describe%" ( set "is_dirty=1" )
 for /f %%i in ('bash -c "cygpath '%PRJ_DIR%'"') do set "project_path=%%i"
 %_info% "project_path '%project_path%' from project_dir='%PRJ_DIR%'"
 
-%_task% "Must check if Git repository is dirty"
+%_task% "Must check if Git repository is dirty (UV_DEBUG_FILTER to see filter output)"
 set "is_dirty_files="
 set "is_dirty_src="
-for /f "tokens=2" %%i in ('git -C "%PRJ_DIR%" status --porcelain') do (
-    if not "%%i"=="" (
-        if not "%%i"=="version.txt" (
-            if not "%%i"=="CHANGELOG.md" (
-                set "is_dirty_files=true"
-                set "file=,%%i"
-                if not "!file:,src/=!"=="!file!" (
-                  set "is_dirty_src=true"
-                  set "file=!file:,=!"
-                )
-            )
-        )
-    )
+
+REM Delete any existing temp file
+if exist "%dirty_files_tmp%" del "%dirty_files_tmp%"
+
+REM Create a temporary command script to run the filter
+echo @echo off > "%uv_git_dir%\run_filter.cmd"
+echo perl "%uv_git_dir%\dirty-status-filter.pl" "%update-version_dir%" "%PRJ_DIR%" >> "%uv_git_dir%\run_filter.cmd"
+
+REM Run git status and pipe to our command script
+git -C "%PRJ_DIR%" status --porcelain | "%uv_git_dir%\run_filter.cmd"
+set perl_exit=%ERRORLEVEL%
+
+REM Delete the temporary command script
+del "%uv_git_dir%\run_filter.cmd"
+
+REM Check if dirty files were found
+if %perl_exit% EQU 0 (
+    REM No dirty files found
+    set "is_dirty_files="
+    set "is_dirty_src="
+    set "is_dirty="
+) else if %perl_exit% EQU 3 (
+    REM Dirty files found including src/
+    set "is_dirty_files=true"
+    set "is_dirty_src=true"
+) else if %perl_exit% EQU 2 (
+    REM Dirty files found but no src/
+    set "is_dirty_files=true"
+    set "is_dirty_src="
+) else (
+    REM Unexpected exit code
+    %_fatal% "Unexpected exit code from dirty-status-filter.pl: %perl_exit%" 112
 )
 
 %_info% "git_describe='%git_describe%', git_tag='%git_tag%'"
 %_info% "is_dirty='%is_dirty%', is_dirty_files='%is_dirty_files%'"
-%_info% "is_dirty_src='%is_dirty_src%', src_file_max_timestamp='%src_file_max_timestamp%'"
+%_info% "is_dirty_src='%is_dirty_src%'"
+
+rem %_fatal% "Stop for now: perl_exit='%perl_exit%'" 99
 
 ::##################################################
 ::  CHECK IF RELEASE IS NEEDED
@@ -334,7 +359,7 @@ goto:eof
 if defined UV_FORCE_REL (
   if defined is_dirty_files (
     %_warning% "(make_new_release) Repository is not clean, but 'UV_FORCE_REL' is set"
-    git -C "%PRJ_DIR%" status --porcelain | grep -v version.txt | grep -v CHANGELOG.md
+  if exist "%dirty_files_tmp%" type "%dirty_files_tmp%"
     goto:make_new_release_check
   )
 )
@@ -342,7 +367,7 @@ set "confirm=y"
 if defined is_dirty_files (
   set "confirm=N"
   %_warning% "(make_new_release) Repository is not clean (and 'UV_FORCE_REL' is not set):"
-  git -C "%PRJ_DIR%" status --porcelain | grep -v version.txt | grep -v CHANGELOG.md
+  if exist "%dirty_files_tmp%" type "%dirty_files_tmp%"
   set /p "confirm=Do you want to make a release? (y/N): "
 ) else (
   %_ok% "(make_new_release) Repository is clean. Proceed with release."

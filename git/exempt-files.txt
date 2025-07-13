@@ -1,0 +1,4 @@
+CHANGELOG.md
+pom.xml
+version.txt
+package.json
