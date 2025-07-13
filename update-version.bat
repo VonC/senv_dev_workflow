@@ -477,7 +477,7 @@ if exist "%PRJ_DIR%\package.json" (
   git -C "%PRJ_DIR%" add "package.json"
   if errorlevel 1 ( %_fatal% "Unable add package.json to index of '%PRJ_DIR%'" 216 )
 )
-%_fatal% "stop for now" 121
+rem %_fatal% "stop for now" 121
 git -C "%PRJ_DIR%" commit -m "chore(release): set new 'v%version_release%' from previous release '%git_tag%'"
 if errorlevel 1 ( %_fatal% "Unable commit version.txt/CHANGELOG.md to index of '%PRJ_DIR%'" 214 )
 %_ok% "Git repository reset, version.txt and CHANGELOG.md added to index and committed"
