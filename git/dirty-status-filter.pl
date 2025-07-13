@@ -88,14 +88,18 @@ while (my $line = <STDIN>) {
 # Write results to output file if matches found
 if ($found_files) {
     open my $out, '>', $output_file or die "Cannot open $output_file for writing: $!";
-    print $out join("\n", @matched_lines);
+    foreach my $line (@matched_lines) {
+        print $out "$line\n";
+    }
     close $out;
 }
 
 # Write ignored files to separate output file
 if (@ignored_lines) {
     open my $out, '>', $ignored_output_file or die "Cannot open $ignored_output_file for writing: $!";
-    print $out join("\n", @ignored_lines);
+    foreach my $line (@ignored_lines) {
+        print $out "$line\n";
+    }
     close $out;
 }
 
