@@ -25,6 +25,7 @@ for %%i in ("%~dp0") do SET "update-version_dir=%%~fi"
 SET "update-version_dir=%update-version_dir:~0,-1%"
 SET "uv_git_dir=%update-version_dir%\git"
 set "dirty_files_tmp=%uv_git_dir%\dirty_files.tmp"
+set "dirty_ignored_files_tmp=%uv_git_dir%\dirty_ignored_files.tmp"
 rem echo %update-version_dir%
 rem echo %uv_git_dir%
 set "QUIET_PRJ=true"
@@ -85,6 +86,7 @@ set "is_dirty_src="
 
 REM Delete any existing temp file
 if exist "%dirty_files_tmp%" del "%dirty_files_tmp%"
+if exist "%dirty_ignored_files_tmp%" del "%dirty_ignored_files_tmp%"
 
 REM Create a temporary command script to run the filter
 echo @echo off > "%uv_git_dir%\run_filter.cmd"
@@ -368,9 +370,16 @@ if defined is_dirty_files (
   set "confirm=N"
   %_warning% "(make_new_release) Repository is not clean (and 'UV_FORCE_REL' is not set):"
   if exist "%dirty_files_tmp%" type "%dirty_files_tmp%"
-  set /p "confirm=Do you want to make a release? (y/N): "
+  set /p "confirm=Do you want to make a release with dirty status? (y/N): "
 ) else (
-  %_ok% "(make_new_release) Repository is clean. Proceed with release."
+  if not exist "%dirty_files_tmp%" (
+    %_ok% "(make_new_release) Repository is clean. Proceed with release."
+  )
+)
+if exist "%dirty_ignored_files_tmp%" (
+  %_warning% "(make_new_release) Ignored dirty files:"
+  type "%dirty_ignored_files_tmp%"
+  set /p "confirm=Do you want to make a release with ignored files? (y/N): "
 )
 if /i "!confirm!" neq "y" (
   %_fatal% "(make_new_release) No release made, since Git repository status is dirty." 118
