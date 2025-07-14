@@ -140,7 +140,7 @@ if "%~1"=="0" (
       set "a_release_has_just_been_made="
       call:reset_pre_release
     ) else (
-      %_warning% "A release has just been made, but the tag 'v%project_version%' is marked as valid:  do NOT cancel release"
+      %_warning% "A release has just been made, but the tag 'v%project_version%' is marked as valid: do NOT cancel release"
     )
   ) else (
     %_warning% "No release was just made, just unset build"
