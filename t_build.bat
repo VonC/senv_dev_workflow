@@ -117,15 +117,92 @@ goto:eof
 :post-processing
 if "%~1"=="0" (
   %_ok% "project '%PRJ_DIR_NAME%' build successful"
+  %_task% "Must check if tag 'v%project_version%' is already marked as valid..."
+  call:is_tag_valid "v%project_version%"
+  if "%IS_VALID%"=="true" (
+      %_ok% "Tag 'v%project_version%' is already marked as valid. No action needed."
+  ) else (
+      %_warning% "Tag 'v%project_version%' is not marked as valid."
+      %_task% "Must update Tag 'v%project_version%' as valid..."
+      call:make_tag_valid "v%project_version%"
+      if errorlevel 1 (
+        %_fatal% "Unable to update Tag 'v%project_version%' as valid" 165
+      )
+      %_ok% "Tag 'v%project_version%' is now marked as valid."
+  )
 ) else (
   %_error% "project '%PRJ_DIR_NAME%' build FAILED for version '%project_version%' (code '%~1')"
+  call:is_tag_valid "v%project_version%"
   call:has_a_release_just_been_made
   if defined a_release_has_just_been_made (
-    set "a_release_has_just_been_made="
-    call:reset_pre_release
+    if not "%IS_VALID%"=="true" (
+      %_warning% "A release has just been made, but the tag 'v%project_version%' is not marked as valid: cancel release"
+      set "a_release_has_just_been_made="
+      call:reset_pre_release
+    ) else (
+      %_warning% "A release has just been made, but the tag 'v%project_version%' is marked as valid:  do NOT cancel release"
+    )
+  ) else (
+    %_warning% "No release was just made, just unset build"
   )
   call:build_unset
   call "%DEV_WORKFLOW_DIR%\batcolors\echos.bat" :fatal "project '%PRJ_DIR_NAME%' build FAILED, code '%ERRORLEVEL%'" 3
+)
+goto:eof
+
+::##################################################
+::  MAKE TAG VALID
+::  Updates a Git tag to include the [valid] marker
+::
+::  Parameters:
+::    %1 - Tag name to validate (e.g., "v1.2.3")
+::
+::  Return Value:
+::    errorlevel - 0 for success, non-zero for failure
+::##################################################
+:make_tag_valid
+set "TAG_NAME=%~1"
+set "TEMP_TAG_FILE=%t_build_dir%\temp_tag_message.txt"
+%_info% "Dumping tag '%TAG_NAME%' message to a temporary file..."
+:: Get the full, multi-line tag message and save it to a file.
+git -C "%PRJ_DIR%" tag -n9999 --format="%%(contents)" %TAG_NAME% > "%TEMP_TAG_FILE%"
+if errorlevel 1 (
+  %_fatal% "Unable to dump tag '%TAG_NAME%' message to temporary file '%TEMP_TAG_FILE%'" 151
+)
+%_info% "Appending '[valid]' marker to the file..."
+:: Append the validation marker to the message file.
+echo.>> "%TEMP_TAG_FILE%"
+echo [valid]>> "%TEMP_TAG_FILE%"
+if errorlevel 1 (
+  %_fatal% "Unable to append '[valid]' marker to the temporary file '%TEMP_TAG_FILE%'" 152
+)
+
+%_info% "Re-tagging '%TAG_NAME%' with the updated message..."
+:: Force-update the annotated tag using the content from the file.
+git -C "%PRJ_DIR%" tag -a -f %TAG_NAME% -F "%TEMP_TAG_FILE%"
+if errorlevel 1 (
+  %_fatal% "Unable to Force-update the annotated tag '%TAG_NAME%' using the content from the temporary file '%TEMP_TAG_FILE%'" 153
+)
+goto:eof
+
+::##################################################
+::  IS TAG VALID
+::  Checks if a Git tag contains the [valid] marker
+::
+::  Parameters:
+::    %1 - Tag name to validate (e.g., "v1.2.3")
+::
+::  Return Value:
+::    Sets IS_VALID=true if the tag is valid,
+::    IS_VALID=false otherwise
+::##################################################
+:is_tag_valid
+set "TAG_NAME=%~1"
+set "IS_VALID=false"
+:: Check if the tag's annotated message contains the '[valid]' marker.
+git -C "%PRJ_DIR%" tag -l --format="%%(contents)" %TAG_NAME% | findstr /C:"[valid]" >nul 2>&1
+if %errorlevel% equ 0 (
+    set "IS_VALID=true"
 )
 goto:eof
 
