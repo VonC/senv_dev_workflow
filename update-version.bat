@@ -167,6 +167,7 @@ if defined is_dirty (
   set "git_is_snapshot=1"
   set "git_is_release="
 )
+rem %_fatal% "Stop before post_dirty_check: perl_exit='%perl_exit%', First param '%~1'" 98
 :post_dirty_check
 if "%~1"=="rel" (
   if defined git_is_release (
@@ -271,12 +272,12 @@ if defined PRJ_REL_TITLE (
 )
 %_task% "Must enter title for CHANGELOG.md next release '%relVersion%' (PRJ_REL_TITLE not set)"
 set /p "title=Enter title for '%relVersion%': "
-if "!title!"=="" ( %_fatal% "Empty title for '%relVersion%'" 311 )
+if "!title!"=="" ( %_fatal% "Empty title for '%relVersion%'" 221 )
 
 verify >nul
 echo %appver% -- !title!> "%PRJ_DIR%\version.txt"
 if errorlevel 1 (
-  %_fatal% "Unable to set %appver% in '%PRJ_DIR%\version.txt'" 256
+  %_fatal% "Unable to set %appver% in '%PRJ_DIR%\version.txt'" 222
 )
 
 %_task% "Must enter multi-line description for CHANGELOG.md next release '%relVersion%' (PRJ_REL_DESCRIPTION not set)"
@@ -293,7 +294,7 @@ echo.%line%>> "%PRJ_DIR%\version.txt"
 set at_least_one_line=1
 goto readInput
 :endInput
-if not defined at_least_one_line ( %_fatal% "Empty description for '%relVersion%'" 312 )
+if not defined at_least_one_line ( %_fatal% "Empty description for '%relVersion%'" 223 )
 
 git -C "%PRJ_DIR%" add -- "version.txt"
 if errorlevel 1 ( call:restore-version

@@ -109,7 +109,7 @@ goto:eof
 if "%~1"=="0" (
   %_ok% "project '%PRJ_DIR_NAME%' build successful"
 ) else (
-  %_error% "project '%PRJ_DIR_NAME%' build FAILED for version '%project_version%'"
+  %_error% "project '%PRJ_DIR_NAME%' build FAILED for version '%project_version%' (code '%~1')"
   call:has_a_release_just_been_made
   if defined a_release_has_just_been_made (
     set "a_release_has_just_been_made="
