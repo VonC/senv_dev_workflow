@@ -119,7 +119,7 @@ if "%~1"=="0" (
   %_ok% "project '%PRJ_DIR_NAME%' build successful"
   %_task% "Must check if tag 'v%project_version%' is already marked as valid..."
   call:is_tag_valid "v%project_version%"
-  if "%IS_VALID%"=="true" (
+  if "!IS_VALID!"=="true" (
       %_ok% "Tag 'v%project_version%' is already marked as valid. No action needed."
   ) else (
       %_warning% "Tag 'v%project_version%' is not marked as valid."
@@ -135,12 +135,13 @@ if "%~1"=="0" (
   call:is_tag_valid "v%project_version%"
   call:has_a_release_just_been_made
   if defined a_release_has_just_been_made (
-    if not "%IS_VALID%"=="true" (
-      %_warning% "A release has just been made, but the tag 'v%project_version%' is not marked as valid: cancel release"
+    if "!IS_VALID!"=="false" (
+      %_warning% "A release has just been made, but the tag 'v%project_version%' is not marked as valid ('!IS_VALID!'): cancel release"
       set "a_release_has_just_been_made="
+      rem %_fatal% "Stop before :reset_pre_release: IS_VALID='%IS_VALID%', with delay: '!IS_VALID!'"
       call:reset_pre_release
     ) else (
-      %_warning% "A release has just been made, but the tag 'v%project_version%' is marked as valid: do NOT cancel release"
+      %_warning% "A release has just been made, but the tag 'v%project_version%' is marked as valid ('!IS_VALID!'): do NOT cancel release"
     )
   ) else (
     %_warning% "No release was just made, just unset build"
