@@ -117,6 +117,10 @@ goto:eof
 :post-processing
 if "%~1"=="0" (
   %_ok% "project '%PRJ_DIR_NAME%' build successful"
+  if not "%project_version:-SNAPSHOT=%"=="%project_version%" (
+    %_info% "Snapshot version (v%project_version%'), no tag to validate"
+    goto:eof
+  )
   %_task% "Must check if tag 'v%project_version%' is already marked as valid..."
   call:is_tag_valid "v%project_version%"
   if "!IS_VALID!"=="true" (
@@ -132,19 +136,23 @@ if "%~1"=="0" (
   )
 ) else (
   %_error% "project '%PRJ_DIR_NAME%' build FAILED for version '%project_version%' (code '%~1')"
-  call:is_tag_valid "v%project_version%"
-  call:has_a_release_just_been_made
-  if defined a_release_has_just_been_made (
-    if "!IS_VALID!"=="false" (
-      %_warning% "A release has just been made, but the tag 'v%project_version%' is not marked as valid ('!IS_VALID!'): cancel release"
-      set "a_release_has_just_been_made="
-      rem %_fatal% "Stop before :reset_pre_release: IS_VALID='%IS_VALID%', with delay: '!IS_VALID!'"
-      call:reset_pre_release
+  if "%project_version:-SNAPSHOT=%"=="%project_version%" (
+    call:is_tag_valid "v%project_version%"
+    call:has_a_release_just_been_made
+    if defined a_release_has_just_been_made (
+      if "!IS_VALID!"=="false" (
+        %_warning% "A release has just been made, but the tag 'v%project_version%' is not marked as valid ('!IS_VALID!'): cancel release"
+        set "a_release_has_just_been_made="
+        rem %_fatal% "Stop before :reset_pre_release: IS_VALID='%IS_VALID%', with delay: '!IS_VALID!'"
+        call:reset_pre_release
+      ) else (
+        %_warning% "A release has just been made, but the tag 'v%project_version%' is marked as valid ('!IS_VALID!'): do NOT cancel release"
+      )
     ) else (
-      %_warning% "A release has just been made, but the tag 'v%project_version%' is marked as valid ('!IS_VALID!'): do NOT cancel release"
+      %_warning% "No release was just made, just unset build"
     )
   ) else (
-    %_warning% "No release was just made, just unset build"
+    %_info% "Snapshot version (v%project_version%'), no tag to invalidate"
   )
   call:build_unset
   call "%DEV_WORKFLOW_DIR%\batcolors\echos.bat" :fatal "project '%PRJ_DIR_NAME%' build FAILED, code '%ERRORLEVEL%'" 3
