@@ -75,6 +75,18 @@ if not exist "%PRJ_DIR%\changelog-header.md" (
 )
 
 ::##################################################
+::  DEFINE PROJECT ALIASES
+::##################################################
+doskey a="%PRJ_DIR%\all.bat" $*
+doskey b="%PRJ_DIR%\build.bat" $*
+doskey brel="%PRJ_DIR%\build.bat" rel $*
+doskey p="%PRJ_DIR%\publish.bat" $*
+doskey d="%PRJ_DIR%\deploy.bat" $*
+doskey r="%PRJ_DIR%\run.bat" $*
+doskey crel=bash -c "git tag --sort=-creatordate | head -n 1 | xargs -I {} sh -c 'git reset $(git rev-list -n 1 {}^); git tag -d {}'"
+doskey fsenv=set "NO_MORE_SENV_%PRJ_DIR_NAME%=" ^& "%PRJ_DIR%\senv.bat"
+
+::##################################################
 ::  SET PROJECT DIRECTORY
 ::##################################################
 set "workflow_dir=%init_workflow_dir%"
