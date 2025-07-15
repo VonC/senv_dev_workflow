@@ -180,9 +180,13 @@ if "%~1"=="rel" (
 
 REM Add support for forcing snapshot creation
 if "%~1"=="snap" (
-  %_task% "Forcing new snapshot creation (snap parameter provided)"
-  goto:make_new_snapshot_forced
-  goto:eof
+  if "%version:-SNAPSHOT=%"=="%version%" (
+    %_task% "Forcing new snapshot creation (snap parameter provided) from previous release '%git_tag%'"
+    goto:make_new_snapshot_forced
+    goto:eof
+  ) else (
+    %_warning% "snap param provided, but version '%version%' is already a SNAPSHOT one"
+  )
 )
 
 call:make_new_snapshot
