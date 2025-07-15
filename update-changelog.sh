@@ -149,37 +149,25 @@ main() {
   if [ -f "${PRJ_DIR}/.changelog.fixes" ]; then
     task "Must apply custom fixes from .changelog.fixes file..."
 
-    # Create a temporary Perl script to process all replacements in one pass
+    # Define path for the Perl script template and the final script
+    perl_script_template="${UPDATE_CHANGELOG_DIR}/update-changelog.fixes.tpl.pl"
     perl_script="${PRJ_DIR}/tmp_fixes.pl"
+    
+    # Copy the template to create the base for our script
+    cp "${perl_script_template}" "${perl_script}"
 
-    # Start writing the Perl script with header
-    cat >"${perl_script}" <<'EOF'
-#!/usr/bin/perl -pi
-BEGIN {
-  @patterns = ();
-  @replacements = ();
-}
-
-# Process each line of the input file
-{
-  my $line = $_;
-  foreach my $i (0..$#patterns) {
-    $line =~ s/$patterns[$i]/$replacements[$i]/g;
-  }
-  $_ = $line;
-}
-EOF
-
-    # Add the patterns and replacements to the Perl script
-    echo "BEGIN {" >>"${perl_script}"
+    # Define a temporary file to hold the content to be injected
+    fixes_content_file="${PRJ_DIR}/.fixes_content.tmp"
 
     # Check if .changelog.fixes begins with PERL_CODE marker
-    if grep -q "^PERL_CODE$" "${PRJ_DIR}/.changelog.fixes"; then
-      # Extract everything after the PERL_CODE marker and append directly to the script
-      sed -n '/^PERL_CODE$/,${/^PERL_CODE$/d;p}' "${PRJ_DIR}/.changelog.fixes" >>"${perl_script}"
+    if grep -q "^# PERL_CODE$" "${PRJ_DIR}/.changelog.fixes"; then
+      # Extract everything after the PERL_CODE marker into the temp file
+      sed -n '/^# PERL_CODE$/,${/^# PERL_CODE$/d;p}' "${PRJ_DIR}/.changelog.fixes" > "${fixes_content_file}"
       info "Using direct Perl code from .changelog.fixes"
     else
       # Process in traditional way with => separator
+      # Remove the temp file to ensure it's empty
+      rm -f "${fixes_content_file}"
       while IFS= read -r line; do
         # Trim whitespace and skip comments/empty lines
         line=$(echo "$line" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
@@ -200,19 +188,28 @@ EOF
           regex=$(echo "$regex" | sed 's/\\/\\\\/g' | sed 's/"/\\"/g')
           replacement=$(echo "$replacement" | sed 's/\\/\\\\/g' | sed 's/"/\\"/g')
 
-          # Add to Perl arrays
-          echo "  push @patterns, \"$regex\";" >>"${perl_script}"
-          echo "  push @replacements, \"$replacement\";" >>"${perl_script}"
+          # Add to Perl arrays, writing to the temp file
+          echo "  push @patterns, qr/\"$regex\"/;" >>"${fixes_content_file}"
+          echo "  push @replacements, \"$replacement\";" >>"${fixes_content_file}"
 
-          info "Added replacement rule: '$regex' => '$replacement'"
+          info "Added legacy replacement rule: '$regex' => '$replacement'"
         else
           warn "Ignoring malformed line in .changelog.fixes: ${line}"
         fi
       done <"${PRJ_DIR}/.changelog.fixes"
     fi
 
-    # Close the BEGIN block
-    echo "}" >>"${perl_script}"
+    # Use sed to replace the placeholder in the template with the generated content.
+    # The 'r' command reads the content of the file and inserts it.
+    # The second command deletes the placeholder line itself.
+    sed -i -e "/#FIXES_CONTENT_GOES_HERE#/r ${fixes_content_file}" -e "/#FIXES_CONTENT_GOES_HERE#/d" "${perl_script}"
+    rm -f "${fixes_content_file}"
+
+    # if CHANGELOG_DBG is set, then print out the perl script for debugging
+    if [[ -n "${CHANGELOG_DBG}" ]]; then
+      info "Debugging mode is ON. Perl script content:"
+      cat "${perl_script}"
+    fi
 
     # Run the Perl script on CHANGELOG.new.md
     if perl -i "${perl_script}" "${PRJ_DIR}/CHANGELOG.new.md"; then
@@ -222,7 +219,11 @@ EOF
     fi
 
     # Clean up
-    rm -f "${perl_script}"
+    if [[ -z "${CHANGELOG_DBG}" ]]; then
+      rm -f "${perl_script}"
+    else
+      info "Debugging mode is ON. Keeping Perl script: ${perl_script}"
+    fi
   else
     info "No .changelog.fixes file found, skipping custom fixes"
   fi

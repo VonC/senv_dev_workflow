@@ -1,24 +1,14 @@
 #!/usr/bin/perl -pi
 
 # This BEGIN block is executed once before the first line of the input file is read.
-# It initializes the patterns and replacements arrays and populates them.
+# It initializes the patterns and replacements arrays and populates them with rules
+# that will be injected by the calling script.
 BEGIN {
   # Initialize the arrays that will hold the regex patterns and their corresponding replacements.
   @patterns = ();
   @replacements = ();
 
-  # --- Define your replacement rules here ---
-
-  # Rule 1: Find and wrap URLs in angle brackets.
-  # This rule is more specific and should run first to avoid conflicts.
-  push @patterns, qr/(?<!<)(http\S+)(?<!>)\b/;
-  push @replacements, '<\1>'; # The replacement template uses '\1' for the first capture group.
-
-  # Rule 2: Clean up any single trailing space or tab after a non-space character.
-  # This pattern uses a positive lookahead to find the whitespace that is
-  # followed by a newline sequence, without consuming the newline itself.
-  push @patterns, qr/(\S)(?: |\t)(?=\r|\n)/;
-  push @replacements, '\1'; # The replacement template uses '\1' for the first capture group.
+  #FIXES_CONTENT_GOES_HERE#
 }
 
 # This block is executed for each line of the input file.
