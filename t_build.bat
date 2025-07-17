@@ -45,7 +45,7 @@ set "sp-uv="
 set "PRJ_REL_TITLE="
 set "build_must_fail="
 :loop
-echo First param '%~1'
+rem echo First param '%~1'
 if "%~1"=="" goto:end
 if "%~1"=="rel" (
     set "build_params-uv=!build_params-uv!!sp-uv!^"%~1^""
@@ -55,7 +55,7 @@ if "%~1"=="rel" (
 if "%~1"=="snap" (
     set "build_params-uv=!build_params-uv!!sp-uv!^"%~1^""
     set "sp-uv= "
-    echo added
+    rem echo added
     goto:continue
 )
 set "a_param=%~1"
@@ -73,7 +73,7 @@ set "sp= "
 
 :continue
 shift
-echo build_params-uv='!build_params-uv!'
+rem echo build_params-uv='!build_params-uv!'
 goto loop
 :end
 endlocal & set "build_params=%build_params%" & set "build_params-uv=%build_params-uv%" & set "PRJ_REL_TITLE=%PRJ_REL_TITLE%" & set "build_must_fail=%build_must_fail%"
