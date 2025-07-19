@@ -22,6 +22,9 @@ call %~dp0tools\init.bat "%PRJ_DIR%"
 
 REM your local settings here
 
+REM For instance, the project needs to be built and deployed as xxx
+REM set "APP_NAME=xxx"
+
 goto:eof
 
 :call_echos_stack
