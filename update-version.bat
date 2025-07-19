@@ -222,6 +222,12 @@ if defined is_release (
     ) else (
         set "askForNewSnapshot=%askForNewSnapshot%, dirty"
     )
+    if defined commit_count (
+      if "%commit_count%"=="0" (
+        %_ok% "No need for new snapshot: current version '%version%' is a RELEASE one without any new commit, just local modification."
+        goto:eof
+      )
+    )
   )
 )
 
