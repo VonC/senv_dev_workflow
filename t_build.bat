@@ -123,7 +123,7 @@ if "%~1"=="0" (
   )
   %_task% "Must check if tag 'v%project_version%' is already marked as valid..."
   call:is_tag_valid "v%project_version%"
-  if "!IS_VALID!"=="true" (
+  if defined IS_VALID (
       %_ok% "Tag 'v%project_version%' is already marked as valid. No action needed."
   ) else (
       %_warning% "Tag 'v%project_version%' is not marked as valid."
@@ -140,7 +140,7 @@ if "%~1"=="0" (
     call:is_tag_valid "v%project_version%"
     call:has_a_release_just_been_made
     if defined a_release_has_just_been_made (
-      if "!IS_VALID!"=="false" (
+      if not defined IS_VALID (
         %_warning% "A release has just been made, but the tag 'v%project_version%' is not marked as valid ('!IS_VALID!'): cancel release"
         set "a_release_has_just_been_made="
         rem %_fatal% "Stop before :reset_pre_release: IS_VALID='%IS_VALID%', with delay: '!IS_VALID!'"
@@ -203,11 +203,11 @@ goto:eof
 ::
 ::  Return Value:
 ::    Sets IS_VALID=true if the tag is valid,
-::    IS_VALID=false otherwise
+::    IS_VALID= (undefined) otherwise
 ::##################################################
 :is_tag_valid
 set "TAG_NAME=%~1"
-set "IS_VALID=false"
+set "IS_VALID="
 :: Check if the tag's annotated message contains the '[valid]' marker.
 git -C "%PRJ_DIR%" tag -l --format="%%(contents)" %TAG_NAME% | findstr /C:"[valid]" >nul 2>&1
 if %errorlevel% equ 0 (
