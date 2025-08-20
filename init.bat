@@ -74,21 +74,48 @@ if not exist "%PRJ_DIR%\changelog-header.md" (
   %_fatal% "[dev_workflow] The changelog header file is missing at '%PRJ_DIR%\changelog-header.md'" 3
 )
 
+set "filter_smudge="
+for /f "tokens=* delims=" %%i in ('git -C "%PRJ_DIR%" config filter."changelog".smudge') do SET "filter_smudge=%%~ni"
+if not defined filter_smudge (
+  %_task% "[dev_workflow] Must set git config filter.changelog filter for changelog diff"
+  git  -C "%PRJ_DIR%" config filter.changelog.smudge "cat"
+  git  -C "%PRJ_DIR%" config filter.changelog.clean "sed -E 's/(## \[v.*?-SNAPSHOT unreleased\].*-).*$/\1/'"
+  if errorlevel 1 (
+    %_fatal% "[dev_workflow] git  -C '%PRJ_DIR%' config filter.changelog filters failed for changelog diff" 231
+  )
+  %_ok% "[dev_workflow] git  -C '%PRJ_DIR%' config filter.changelog filters set for changelog diff"
+)
+
 ::##################################################
 ::  DEFINE PROJECT ALIASES
 ::##################################################
 doskey a="%PRJ_DIR%\all.bat" $*
 doskey b="%PRJ_DIR%\build.bat" $*
 doskey brel="%PRJ_DIR%\build.bat" rel $*
+doskey br="%PRJ_DIR%\build.bat" rel $*
+doskey t="%PRJ_DIR%\test.bat" $*
+doskey s="%PRJ_DIR%\setup.bat" $*
+doskey i="%PRJ_DIR%\install.bat" $*
 doskey p="%PRJ_DIR%\publish.bat" $*
 doskey d="%PRJ_DIR%\deploy.bat" $*
 doskey r="%PRJ_DIR%\run.bat" $*
 doskey crel=bash -c "git tag --sort=-creatordate | head -n 1 | xargs -I {} sh -c 'git reset $(git rev-list -n 1 {}^); git tag -d {}'"
-doskey fsenv=set "NO_MORE_SENV_%PRJ_DIR_NAME%=" ^& "%PRJ_DIR%\senv.bat"
+doskey fsenv=set "NO_MORE_SENV_%PRJ_DIR_NAME%=" ^& "%PRJ_DIR%\senv.bat" force $*
+
+doskey lsenv="%project_dir%\senv.bat" local $*
+doskey psenve="%PRGS%\vscodes\current\bin\code.cmd" "%~dp0senv.local.bat"
+doskey senv="%project_dir%\senv.bat" $*
+doskey psenv="%project_dir%\senv.bat" $*
+doskey hsenv=%HOME%\bin\senv.bat $*
+doskey hlsenv=%HOME%\bin\lsenv.bat $*
+doskey usenv="%project_dir%\senv.bat" unset
+
+doskey cdp=cd /d "%PRJ_DIR%"
 
 ::##################################################
 ::  SET PROJECT DIRECTORY
 ::##################################################
+for /f "tokens=* delims=" %%i in ('cygpath -u "%PRJ_DIR%"') do SET "PRJ_DIR_unix=%%~i"
 set "workflow_dir=%init_workflow_dir%"
 
 %_info% "[dev_workflow] Workflow directory is '%workflow_dir%'"
@@ -107,8 +134,26 @@ if not exist %DEV_WORKFLOW_DIR% (
 
 doskey uc="%DEV_WORKFLOW_DIR%\update-changelog.bat" $*
 doskey uv="%DEV_WORKFLOW_DIR%\update-version.bat" $*
+doskey uvr="%DEV_WORKFLOW_DIR%\update-version" rel $*
+doskey uvf=cmd /V /C "set "FORCE_UC=1" && "%DEV_WORKFLOW_DIR%\update-version.bat" $*"
+doskey gv="%DEV_WORKFLOW_DIR%\get-version.bat"
 
-set "INIT_DONE=1"
+::  ===============================================
+::  CONFIGURE LOCAL PATH MESSAGE
+::  ===============================================
+set "local_path="
+set "local_path_msg="
+if "%~1"=="local" ( set "local_path=1" )
+echo "%PATH%" | findstr /C:"%PRJ_DIR%\tools" >NUL 2>&1
+if not errorlevel 1 ( set "local_path=1" && set "local_path_msg= preserved")
+if defined local_path (
+  set "local_path_msg= [local%local_path_msg%]"
+)
+if "%~1"=="force" (
+  set "local_path_msg= [forced]"
+  set local_path=
+)
+
 goto:eof
 
 :iExitBatch - Cleanly exit batch processing, regardless how many CALLs
