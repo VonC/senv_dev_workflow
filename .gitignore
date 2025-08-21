@@ -12,3 +12,7 @@ git/dirty_files.tmp
 git/dirty_ignored_files.tmp
 temp_tag_message.txt
 tmp_fixes.pl
+
+a
+a.*
+tmp.*
