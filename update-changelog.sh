@@ -151,8 +151,10 @@ main() {
 
     # Define path for the Perl script template and the final script
     perl_script_template="${UPDATE_CHANGELOG_DIR}/update-changelog.fixes.tpl.pl"
-    perl_script="${PRJ_DIR}/tmp_fixes.pl"
-    
+    PRJ_DIR_unix="${PRJ_DIR_unix:-}"
+    perl_script="${PRJ_DIR_unix}/tmp_fixes.pl"
+    info "perl_script='${perl_script}'"
+
     # Copy the template to create the base for our script
     cp "${perl_script_template}" "${perl_script}"
 
@@ -162,7 +164,7 @@ main() {
     # Check if .changelog.fixes begins with PERL_CODE marker
     if grep -q "^# PERL_CODE$" "${PRJ_DIR}/.changelog.fixes"; then
       # Extract everything after the PERL_CODE marker into the temp file
-      sed -n '/^# PERL_CODE$/,${/^# PERL_CODE$/d;p}' "${PRJ_DIR}/.changelog.fixes" > "${fixes_content_file}"
+      sed -n '/^# PERL_CODE$/,${/^# PERL_CODE$/d;p}' "${PRJ_DIR}/.changelog.fixes" >"${fixes_content_file}"
       info "Using direct Perl code from .changelog.fixes"
     else
       # Process in traditional way with => separator
@@ -211,18 +213,27 @@ main() {
       cat "${perl_script}"
     fi
 
-    # Run the Perl script on CHANGELOG.new.md
-    if perl -i "${perl_script}" "${PRJ_DIR}/CHANGELOG.new.md"; then
-      ok "All .changelog.fixes rules applied successfully in a single pass"
+    # Define the script and the file to be processed
+    target_file="${PRJ_DIR}/CHANGELOG.new.md"
+    temp_file="${target_file}.tmp"
+
+    # 1. Run the script, reading the target file and writing the output to a temporary file.
+    # 2. Check if the script succeeded before replacing the original.
+    if perl "${perl_script}" <"${target_file}" >"${temp_file}"; then
+      # 3. If successful, move the temporary file over the original.
+      mv "${temp_file}" "${target_file}"
+      ok "All .changelog.fixes rules applied successfully in a single pass."
     else
-      warn "Some rules from .changelog.fixes may have failed to apply"
+      warn "Some rules from .changelog.fixes may have failed to apply."
+      # 4. If it failed, remove the temporary file.
+      rm -f "${temp_file}"
     fi
 
     # Clean up
     if [[ -z "${CHANGELOG_DBG}" ]]; then
       rm -f "${perl_script}"
     else
-      info "Debugging mode is ON. Keeping Perl script: ${perl_script}"
+      info "Debugging mode is ON. Keeping Perl script: '${perl_script}'"
     fi
   else
     info "No .changelog.fixes file found, skipping custom fixes"
