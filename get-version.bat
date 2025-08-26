@@ -35,13 +35,25 @@ if not exist "%VERSION_TXT_FILE%" (
   goto:eof
 )
 
+set "project_version="
 ::  ===============================================
 ::  READ VERSION/TITLE/RELEASE NOTE FROM FILE
 ::  ===============================================
-for /f "tokens=1* delims=- " %%i in ('head -1 "%VERSION_TXT_FILE%"') do (
+for /f "delims=" %%a in ('head -1 "%VERSION_TXT_FILE%"') do (
+  set "first_line=%%a"
+)
+
+:: Remove leading # if present
+set "first_line=!first_line:#=!"
+:: Trim leading spaces
+for /f "tokens=*" %%a in ("!first_line!") do set "first_line=%%a"
+
+:: Now parse for version and title
+for /f "tokens=1* delims=- " %%i in ("!first_line!") do (
   SET "project_version=%%i"
   SET "project_title=%%j"
 )
+
 if not "%project_title:SNAPSHOT -- =%"=="%project_title%" (
   SET "project_version=%project_version%-SNAPSHOT"
   SET "project_title=%project_title:SNAPSHOT -- =%"

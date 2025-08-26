@@ -56,7 +56,7 @@ main() {
     sed -i "/## \[unreleased\] -/r ${PRJ_DIR}/version.tmp.txt" "${PRJ_DIR}/CHANGELOG.tmp.md"
 
     # Extract the version and title from the first line of version.txt
-    read -r version version_title < <(head -n 1 "${PRJ_DIR}/version.txt" | awk -F ' -- ' '{print $1, $2}')
+    read -r version version_title < <(head -n 1 "${PRJ_DIR}/version.txt" | sed 's/^[#[:space:]]*//g' | awk -F ' -- ' '{print $1, $2}')
 
     # Modify the ## [unreleased] - line with the version, title, and commit hash
     if [[ -z "${make_new_release}" ]]; then

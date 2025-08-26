@@ -100,6 +100,7 @@ doskey p="%PRJ_DIR%\publish.bat" $*
 doskey d="%PRJ_DIR%\deploy.bat" $*
 doskey r="%PRJ_DIR%\run.bat" $*
 doskey crel=bash -c "git tag --sort=-creatordate | head -n 1 | xargs -I {} sh -c 'git reset $(git rev-list -n 1 {}^); git tag -d {}'"
+
 doskey fsenv=set "NO_MORE_SENV_%PRJ_DIR_NAME%=" ^& "%PRJ_DIR%\senv.bat" force $*
 
 doskey lsenv="%project_dir%\senv.bat" local $*
@@ -111,6 +112,8 @@ doskey hlsenv=%HOME%\bin\lsenv.bat $*
 doskey usenv="%project_dir%\senv.bat" unset
 
 doskey cdp=cd /d "%PRJ_DIR%"
+
+doskey gv=call "%PRJ_DIR%\tools\dev_workflow\get-version.bat" ^& cmd /v /c echo Project version from '%PRJ_DIR%\version.txt': '!project_version!'
 
 ::##################################################
 ::  SET PROJECT DIRECTORY
