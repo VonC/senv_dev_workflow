@@ -149,6 +149,8 @@ set "local_path_msg="
 if "%~1"=="local" ( set "local_path=1" )
 echo "%PATH%" | findstr /C:"%PRJ_DIR%\tools" >NUL 2>&1
 if not errorlevel 1 ( set "local_path=1" && set "local_path_msg= preserved")
+REM reset ERRORLEVEL to 0
+ver > NUL
 if defined local_path (
   set "local_path_msg= [local%local_path_msg%]"
 )
