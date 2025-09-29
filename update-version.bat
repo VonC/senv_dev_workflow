@@ -78,7 +78,7 @@ set "is_dirty="
 if not "%git_describe:-dirty=%" == "%git_describe%" ( set "is_dirty=1" )
 
 for /f %%i in ('bash -c "cygpath '%PRJ_DIR%'"') do set "project_path=%%i"
-%_info% "project_path '%project_path%' from project_dir='%PRJ_DIR%'"
+%_info% "project_path '%project_path%' from PRJ_DIR='%PRJ_DIR%'"
 
 %_task% "Must check if Git repository is dirty (UV_DEBUG_FILTER to see filter output)"
 set "is_dirty_files="

@@ -103,13 +103,13 @@ doskey crel=bash -c "git tag --sort=-creatordate | head -n 1 | xargs -I {} sh -c
 
 doskey fsenv=set "NO_MORE_SENV_%PRJ_DIR_NAME%=" ^& "%PRJ_DIR%\senv.bat" force $*
 
-doskey lsenv="%project_dir%\senv.bat" local $*
+doskey lsenv="%PRJ_DIR%\senv.bat" local $*
 doskey psenve="%PRGS%\vscodes\current\bin\code.cmd" "%~dp0senv.local.bat"
-doskey senv="%project_dir%\senv.bat" $*
-doskey psenv="%project_dir%\senv.bat" $*
+doskey senv="%PRJ_DIR%\senv.bat" $*
+doskey psenv="%PRJ_DIR%\senv.bat" $*
 doskey hsenv=%HOME%\bin\senv.bat $*
 doskey hlsenv=%HOME%\bin\lsenv.bat $*
-doskey usenv="%project_dir%\senv.bat" unset
+doskey usenv="%PRJ_DIR%\senv.bat" unset
 
 doskey cdp=cd /d "%PRJ_DIR%"
 
