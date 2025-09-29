@@ -48,7 +48,7 @@ for my $i (0 .. $#patterns) {
             # This message prints to STDERR, so it won't affect the output file.
             warn "[DEBUG] Rule $rule_num: ✅ Applied successfully ($match_count matches) with pattern '$pattern': replacement '$replacement'.\n";
         } else {
-            warn "[DEBUG] Rule $rule_num: ➖ No matches found for pattern '$pattern'.\n";
+            warn "[DEBUG] Rule $rule_num: ⚠️ No matches found for pattern '$pattern'.\n";
         }
     }
 }

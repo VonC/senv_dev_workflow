@@ -211,6 +211,8 @@ main() {
     if [[ -n "${CHANGELOG_DBG}" ]]; then
       info "Debugging mode is ON. Perl script content:"
       cat "${perl_script}"
+    else
+      info "Debugging mode (CHANGELOG_DBG) is OFF."
     fi
 
     # Define the script and the file to be processed
@@ -226,14 +228,18 @@ main() {
     else
       warn "Some rules from .changelog.fixes may have failed to apply."
       # 4. If it failed, remove the temporary file.
-      rm -f "${temp_file}"
+      if [[ -z "${CHANGELOG_DBG}" ]]; then
+        rm -f "${temp_file}"
+      else
+        info "Debugging mode (CHANGELOG_DBG) is ON. Keeping temp file: '${temp_file}'"
+      fi
     fi
 
     # Clean up
     if [[ -z "${CHANGELOG_DBG}" ]]; then
       rm -f "${perl_script}"
     else
-      info "Debugging mode is ON. Keeping Perl script: '${perl_script}'"
+      info "Debugging mode (CHANGELOG_DBG) is ON. Keeping Perl script: '${perl_script}'"
     fi
   else
     info "No .changelog.fixes file found, skipping custom fixes"
