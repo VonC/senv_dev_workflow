@@ -1,0 +1,26 @@
+#!/bin/perl
+# .changelog.fixes
+
+# Example of a Perl script to apply multiple regex-based fixes to changelog entries.
+# Each fix consists of a pattern and a replacement template.
+# The script processes input text line by line, applying each fix in sequence.
+# Keep the `# PERL_CODE` to make this file a perl script.
+# or use the syntax `literal=>replacement` (if no `# PERL_CODE` detected in this file).
+
+# PERL_CODE
+
+# Rule 1: Find and wrap URLs in angle brackets.
+# This rule is more specific and should run first to avoid conflicts.
+push @patterns, qr/(?<!<)(http\S+)(?<!>)\b/;
+push @replacements, '"<\1>"'; # The replacement template uses '\1' for the first capture group.
+
+# Rule 2: Clean up any single trailing space or tab after a non-space character.
+# This pattern uses a positive lookahead to find the whitespace that is
+# followed by a newline sequence, without consuming the newline itself.
+push @patterns, qr/(\S)(?: |\t)(?=\r|\n)/;
+push @replacements, '"\1"'; # The replacement template uses '\1' for the first capture group.
+
+# Note: the replacement should be between quotes to avoid 'Use of uninitialized value in substitution iterator at ...'
+# cSpell: disable-next-line
+push @patterns, qr/versio.txt/;
+push @replacements, '"version.txt"';
