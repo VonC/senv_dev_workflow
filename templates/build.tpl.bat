@@ -32,6 +32,12 @@ set "build_dir=%build_dir:~0,-1%"
 call "%build_dir%\senv.bat"
 call "%build_dir%\tools\dev_workflow\t_build.bat" :pre-processing %*
 
+REM Unicode characters would render the file unusable if interpreted as commands too early
+REM So exit early to avoid CMD to interpret the rest of the file as commands
+call:_build_project
+exit /b
+
+:_build_project
 ::  ===============================================
 ::  BUILD PROJECT
 ::  ===============================================
@@ -49,13 +55,14 @@ rem call: any_other_pre_build_step_function...
 set "params=%*"
 
 REM build_params_echos is set by tools\dev_workflow\t_build.bat :pre-processing
-REM it replaces " by ‟ for preserving double quotes in params
+REM it replaces " by ‟: the "Double High-Reversed-9 Quotation Mark" (U+201F) for preserving double quotes in params
+
 %_task% "Start build of '%PRJ_DIR_NAME%' with build_params '%build_params_echos%'"
 
 REM you build commands here. For instance:
 rem set "cmd=mvn -U clean install %build_params%"
 set "cmd=echo my build command here with params %build_params%"
-%_info% "%cmd:"=＂%"
+%_info% "%cmd:"=‟%"
 set "QUIET_PRJ=true"
 call <NUL %cmd%
 set "build_status=%ERRORLEVEL%"
