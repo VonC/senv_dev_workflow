@@ -32,12 +32,6 @@ set "build_dir=%build_dir:~0,-1%"
 call "%build_dir%\senv.bat"
 call "%build_dir%\tools\dev_workflow\t_build.bat" :pre-processing %*
 
-REM Unicode characters would render the file unusable if interpreted as commands too early
-REM So exit early to avoid CMD to interpret the rest of the file as commands
-call:_build_project
-exit /b
-
-:_build_project
 ::  ===============================================
 ::  BUILD PROJECT
 ::  ===============================================
@@ -62,7 +56,14 @@ REM it replaces " by ‟: the "Double High-Reversed-9 Quotation Mark" (U+201F) f
 REM you build commands here. For instance:
 rem set "cmd=mvn -U clean install %build_params%"
 set "cmd=echo my build command here with params %build_params%"
-%_info% "%cmd:"=‟%"
+REM Replace " with U+FF02 ou U+201F without embedding the char in this command.
+for /f "usebackq delims= eol=" %%A in (`
+  powershell -NoProfile -Command ^
+    "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; " ^
+    "$s = [Environment]::GetEnvironmentVariable('cmd','Process'); " ^
+    "$s -replace [char]0x0022,[char]0x201F"
+`) do set "cmd_disp=%%A"
+%_info% "cmd is '%cmd_disp%'"
 set "QUIET_PRJ=true"
 call <NUL %cmd%
 set "build_status=%ERRORLEVEL%"
