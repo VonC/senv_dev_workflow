@@ -136,8 +136,8 @@ if not exist %DEV_WORKFLOW_DIR% (
 )
 
 doskey uc="%DEV_WORKFLOW_DIR%\update-changelog.bat" $*
-doskey uv="%DEV_WORKFLOW_DIR%\update-version.bat" $*
-doskey uvr="%DEV_WORKFLOW_DIR%\update-version" rel $*
+doskey uver="%DEV_WORKFLOW_DIR%\update-version.bat" $*
+doskey uverr="%DEV_WORKFLOW_DIR%\update-version" rel $*
 doskey uvf=cmd /V /C "set "FORCE_UC=1" && "%DEV_WORKFLOW_DIR%\update-version.bat" $*"
 doskey gv="%DEV_WORKFLOW_DIR%\get-version.bat"
 
